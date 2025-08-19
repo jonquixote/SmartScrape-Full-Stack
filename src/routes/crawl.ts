@@ -10,6 +10,9 @@ import {
   CrawlProgress 
 } from '../types/database';
 
+// Store active crawler instances
+const activeCrawlers = new Map<number, any>();
+
 const crawl = new Hono<{ Bindings: Bindings }>();
 
 // Enable CORS for all crawl routes
@@ -232,16 +235,35 @@ crawl.post('/sessions', async (c) => {
 // Start crawling a session
 crawl.post('/sessions/:id/start', async (c) => {
   try {
-    const sessionId = c.req.param('id');
+    const sessionId = parseInt(c.req.param('id'));
     
-    // Update session status to running
-    await c.env.DB.prepare(`
-      UPDATE crawl_sessions SET status = 'running', updated_at = CURRENT_TIMESTAMP 
-      WHERE id = ?
-    `).bind(sessionId).run();
+    // Get session details
+    const session = await c.env.DB.prepare(`
+      SELECT * FROM crawl_sessions WHERE id = ?
+    `).bind(sessionId).first();
 
-    // In a real implementation, this would start the actual crawling process
-    // For now, we'll just return success and the frontend can simulate progress
+    if (!session) {
+      return c.json({ error: 'Crawl session not found' }, 404);
+    }
+
+    if (session.status === 'running') {
+      return c.json({ error: 'Crawl session is already running' }, 400);
+    }
+
+    // Import and start the crawler engine
+    const { CrawlerEngine } = await import('./crawler-engine');
+    const crawler = new CrawlerEngine(c.env.DB, sessionId, session as any);
+    
+    // Store the crawler instance for potential stopping
+    activeCrawlers.set(sessionId, crawler);
+    
+    // Start crawling asynchronously (don't await to return immediately)
+    crawler.startCrawling().catch(error => {
+      console.error(`Crawling session ${sessionId} failed:`, error);
+    }).finally(() => {
+      // Clean up crawler instance when done
+      activeCrawlers.delete(sessionId);
+    });
     
     return c.json({ 
       message: 'Crawl session started',
@@ -257,12 +279,20 @@ crawl.post('/sessions/:id/start', async (c) => {
 // Stop crawling a session
 crawl.post('/sessions/:id/stop', async (c) => {
   try {
-    const sessionId = c.req.param('id');
+    const sessionId = parseInt(c.req.param('id'));
     
-    await c.env.DB.prepare(`
-      UPDATE crawl_sessions SET status = 'stopped', updated_at = CURRENT_TIMESTAMP 
-      WHERE id = ?
-    `).bind(sessionId).run();
+    // Stop the active crawler if it exists
+    const crawler = activeCrawlers.get(sessionId);
+    if (crawler) {
+      await crawler.stopCrawling();
+      activeCrawlers.delete(sessionId);
+    } else {
+      // If no active crawler, just update database status
+      await c.env.DB.prepare(`
+        UPDATE crawl_sessions SET status = 'stopped', updated_at = CURRENT_TIMESTAMP 
+        WHERE id = ?
+      `).bind(sessionId).run();
+    }
 
     return c.json({ 
       message: 'Crawl session stopped',
@@ -318,10 +348,153 @@ crawl.get('/sessions/:id/progress', async (c) => {
   }
 });
 
+// Get crawl tree data for visualization
+crawl.get('/sessions/:id/tree', async (c) => {
+  try {
+    const sessionId = c.req.param('id');
+    
+    const { results: urls } = await c.env.DB.prepare(`
+      SELECT 
+        id, url, depth, status, title, created_at,
+        CASE 
+          WHEN status = 'completed' THEN 'success'
+          WHEN status = 'failed' THEN 'failed'
+          WHEN status = 'blocked' THEN 'blocked'
+          WHEN status = 'processing' THEN 'processing'
+          ELSE 'discovered'
+        END as node_status
+      FROM crawl_urls 
+      WHERE session_id = ? 
+      ORDER BY created_at ASC
+    `).bind(sessionId).all();
+
+    // Build tree structure
+    const tree = {
+      nodes: urls.map((url: any) => ({
+        id: url.id,
+        url: url.url,
+        title: url.title || url.url,
+        depth: url.depth,
+        status: url.node_status,
+        created_at: url.created_at
+      })),
+      // For now, we'll use a simple depth-based hierarchy
+      // In a more advanced implementation, we'd track parent-child relationships
+      edges: []
+    };
+
+    return c.json(tree);
+  } catch (error) {
+    console.error('Error fetching crawl tree:', error);
+    return c.json({ error: 'Failed to fetch crawl tree' }, 500);
+  }
+});
+
+// Get detailed URL data
+crawl.get('/sessions/:id/urls/:urlId', async (c) => {
+  try {
+    const sessionId = c.req.param('id');
+    const urlId = c.req.param('urlId');
+    
+    const url = await c.env.DB.prepare(`
+      SELECT * FROM crawl_urls 
+      WHERE session_id = ? AND id = ?
+    `).bind(sessionId, urlId).first();
+
+    if (!url) {
+      return c.json({ error: 'URL not found' }, 404);
+    }
+
+    // Parse JSON fields
+    const urlData = {
+      ...url,
+      metadata: url.metadata ? JSON.parse(url.metadata) : null,
+      links: url.links ? JSON.parse(url.links) : null,
+      media: url.media ? JSON.parse(url.media) : null
+    };
+
+    return c.json({ url: urlData });
+  } catch (error) {
+    console.error('Error fetching URL details:', error);
+    return c.json({ error: 'Failed to fetch URL details' }, 500);
+  }
+});
+
+// Export crawl results
+crawl.get('/sessions/:id/export/:format', async (c) => {
+  try {
+    const sessionId = c.req.param('id');
+    const format = c.req.param('format');
+    
+    if (!['json', 'csv'].includes(format)) {
+      return c.json({ error: 'Invalid export format. Use json or csv.' }, 400);
+    }
+
+    const session = await c.env.DB.prepare(`
+      SELECT * FROM crawl_sessions WHERE id = ?
+    `).bind(sessionId).first();
+
+    if (!session) {
+      return c.json({ error: 'Crawl session not found' }, 404);
+    }
+
+    const { results: urls } = await c.env.DB.prepare(`
+      SELECT * FROM crawl_urls WHERE session_id = ? ORDER BY created_at ASC
+    `).bind(sessionId).all();
+
+    if (format === 'json') {
+      const exportData = {
+        session,
+        urls: urls.map((url: any) => ({
+          ...url,
+          metadata: url.metadata ? JSON.parse(url.metadata) : null,
+          links: url.links ? JSON.parse(url.links) : null,
+          media: url.media ? JSON.parse(url.media) : null
+        }))
+      };
+      
+      return c.json(exportData);
+    } else if (format === 'csv') {
+      // Generate CSV
+      const headers = ['URL', 'Title', 'Status', 'Depth', 'Content Length', 'Response Time', 'Created At'];
+      const rows = urls.map((url: any) => [
+        url.url,
+        url.title || '',
+        url.status,
+        url.depth || 0,
+        url.content ? url.content.length : 0,
+        url.response_time || 0,
+        url.created_at
+      ]);
+      
+      const csv = [headers, ...rows].map(row => 
+        row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+      ).join('\n');
+      
+      return new Response(csv, {
+        headers: {
+          'Content-Type': 'text/csv',
+          'Content-Disposition': `attachment; filename="crawl-${sessionId}-${new Date().toISOString().split('T')[0]}.csv"`
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Error exporting crawl results:', error);
+    return c.json({ error: 'Failed to export crawl results' }, 500);
+  }
+});
+
 // Delete crawl session
 crawl.delete('/sessions/:id', async (c) => {
   try {
-    const sessionId = c.req.param('id');
+    const sessionId = parseInt(c.req.param('id'));
+    
+    // Stop crawler if running
+    const crawler = activeCrawlers.get(sessionId);
+    if (crawler) {
+      await crawler.stopCrawling();
+      activeCrawlers.delete(sessionId);
+    }
     
     // Delete related URLs first
     await c.env.DB.prepare(`DELETE FROM crawl_urls WHERE session_id = ?`).bind(sessionId).run();

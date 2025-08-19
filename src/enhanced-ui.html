@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartScrape Full-Stack - Enhanced Edition</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.39.0/min/vs/loader.js"></script>
+    <style>
+        /* Enhanced Styling & Layout */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .session-tab-content { display: none; }
+        .session-tab-content.active { display: block; }
+        
+        /* Glassmorphism & Modern Design */
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Enhanced Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: white; font-weight: 500; padding: 0.75rem 1rem;
+            border-radius: 0.5rem; border: none; cursor: pointer; 
+            transition: all 0.2s ease-in-out;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* Real-time Status Indicators */
+        .pulse-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        .pulse-dot.running { background: #10b981; }
+        .pulse-dot.error { background: #ef4444; }
+        .pulse-dot.idle { background: #6b7280; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Progress Bars */
+        .progress-bar {
+            width: 100%; height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%; background: linear-gradient(90deg, #3b82f6, #10b981);
+            transition: width 0.3s ease-in-out;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 0.25rem;
+            padding: 0.25rem 0.75rem; border-radius: 0.375rem; 
+            font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+        }
+        .status-badge.pending { background: #e5e7eb; color: #374151; }
+        .status-badge.running { background: #dbeafe; color: #1e40af; }
+        .status-badge.completed { background: #d1fae5; color: #065f46; }
+        .status-badge.failed { background: #fee2e2; color: #991b1b; }
+        .status-badge.stopped { background: #fef3c7; color: #92400e; }
+
+        /* Advanced Cards */
+        .metric-card {
+            background: white; border-radius: 0.75rem; padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            transition: all 0.2s ease-in-out;
+        }
+        .metric-card:hover {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Monaco Editor Container */
+        .monaco-container {
+            height: 300px; border: 1px solid #e5e7eb; border-radius: 0.5rem;
+        }
+
+        /* Notification System */
+        .notification {
+            position: fixed; top: 1rem; right: 1rem; z-index: 1000;
+            padding: 1rem; border-radius: 0.5rem; color: white; font-weight: 500;
+            transform: translateX(400px); transition: transform 0.3s ease-in-out;
+        }
+        .notification.show { transform: translateX(0); }
+        .notification.success { background: #10b981; }
+        .notification.error { background: #ef4444; }
+        .notification.info { background: #3b82f6; }
+
+        /* Loading Animations */
+        .spinner {
+            width: 20px; height: 20px; border: 2px solid #e5e7eb;
+            border-top: 2px solid #3b82f6; border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Real-time Updates */
+        .live-indicator {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.25rem 0.75rem; background: #10b981; color: white;
+            border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500;
+        }
+
+        /* Dark Mode Support */
+        @media (prefers-color-scheme: dark) {
+            body { background: #111827; color: #f3f4f6; }
+            .glass-effect { background: rgba(17, 24, 39, 0.95); }
+            .metric-card { background: #1f2937; border-color: #374151; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 min-h-screen">
+    <!-- Notification Container -->
+    <div id="notifications"></div>
+
+    <!-- Main Container -->
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold gradient-text mb-2">
+                <i class="fas fa-spider mr-2"></i>
+                SmartScrape Full-Stack
+            </h1>
+            <p class="text-gray-600 mb-4">Enhanced Edition with Crawl4AI Integration</p>
+            
+            <!-- Live Status Indicator -->
+            <div class="live-indicator mb-4">
+                <div class="pulse-dot running"></div>
+                <span>Live Updates Active</span>
+            </div>
+
+            <!-- Quick Stats Dashboard -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8" id="quickStats">
+                <div class="metric-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">Active Sessions</p>
+                            <p class="text-2xl font-bold text-blue-600" id="activeSessions">0</p>
+                        </div>
+                        <i class="fas fa-tasks text-blue-400 text-2xl"></i>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">URLs Crawled</p>
+                            <p class="text-2xl font-bold text-green-600" id="urlsCrawled">0</p>
+                        </div>
+                        <i class="fas fa-link text-green-400 text-2xl"></i>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">Success Rate</p>
+                            <p class="text-2xl font-bold text-purple-600" id="successRate">0%</p>
+                        </div>
+                        <i class="fas fa-chart-line text-purple-400 text-2xl"></i>
+                    </div>
+                </div>
+                <div class="metric-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500">Avg Speed</p>
+                            <p class="text-2xl font-bold text-orange-600" id="avgSpeed">0s</p>
+                        </div>
+                        <i class="fas fa-tachometer-alt text-orange-400 text-2xl"></i>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Navigation -->
+        <nav class="bg-white rounded-lg shadow-lg p-1 mb-8">
+            <div class="flex space-x-1">
+                <button class="tab-btn flex-1 py-3 px-4 text-center font-medium rounded-md transition-colors active" 
+                        onclick="showTab('dashboard')">
+                    <i class="fas fa-chart-pie mr-2"></i>Dashboard
+                </button>
+                <button class="tab-btn flex-1 py-3 px-4 text-center font-medium rounded-md transition-colors" 
+                        onclick="showTab('new-crawl')">
+                    <i class="fas fa-plus-circle mr-2"></i>New Crawl
+                </button>
+                <button class="tab-btn flex-1 py-3 px-4 text-center font-medium rounded-md transition-colors" 
+                        onclick="showTab('sessions')">
+                    <i class="fas fa-list mr-2"></i>Sessions
+                </button>
+                <button class="tab-btn flex-1 py-3 px-4 text-center font-medium rounded-md transition-colors" 
+                        onclick="showTab('extraction')">
+                    <i class="fas fa-magic mr-2"></i>Extraction
+                </button>
+                <button class="tab-btn flex-1 py-3 px-4 text-center font-medium rounded-md transition-colors" 
+                        onclick="showTab('proxies')">
+                    <i class="fas fa-shield-alt mr-2"></i>Proxies
+                </button>
+                <button class="tab-btn flex-1 py-3 px-4 text-center font-medium rounded-md transition-colors" 
+                        onclick="showTab('testing')">
+                    <i class="fas fa-vial mr-2"></i>Testing
+                </button>
+            </div>
+        </nav>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Performance Chart -->
+                <div class="metric-card">
+                    <h3 class="text-lg font-semibold mb-4">
+                        <i class="fas fa-chart-area mr-2"></i>Performance Overview
+                    </h3>
+                    <canvas id="performanceChart" height="200"></canvas>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="metric-card">
+                    <h3 class="text-lg font-semibold mb-4">
+                        <i class="fas fa-history mr-2"></i>Recent Activity
+                    </h3>
+                    <div id="recentActivity" class="space-y-3 max-h-64 overflow-y-auto">
+                        <!-- Activity items will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Status Distribution -->
+                <div class="metric-card">
+                    <h3 class="text-lg font-semibold mb-4">
+                        <i class="fas fa-pie-chart mr-2"></i>Status Distribution
+                    </h3>
+                    <canvas id="statusChart" height="200"></canvas>
+                </div>
+
+                <!-- System Health -->
+                <div class="metric-card">
+                    <h3 class="text-lg font-semibold mb-4">
+                        <i class="fas fa-heartbeat mr-2"></i>System Health
+                    </h3>
+                    <div class="space-y-4" id="systemHealth">
+                        <div class="flex justify-between items-center">
+                            <span>API Response Time</span>
+                            <span class="text-green-600 font-semibold" id="apiResponseTime">--</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>Crawl4AI Service</span>
+                            <span class="status-badge" id="crawl4aiStatus">checking</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span>Proxy Health</span>
+                            <span class="text-blue-600 font-semibold" id="proxyHealth">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- New Crawl Tab -->
+        <div id="new-crawl" class="tab-content">
+            <div class="metric-card max-w-4xl mx-auto">
+                <h2 class="text-2xl font-bold mb-6">
+                    <i class="fas fa-rocket mr-2"></i>Create New Crawl Session
+                </h2>
+
+                <form id="crawlForm" class="space-y-6">
+                    <!-- Basic Information -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Session Title</label>
+                            <input type="text" id="crawlTitle" required 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                   placeholder="Enter crawl session title">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Start Method</label>
+                            <select id="startMethod" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="manual">Manual URLs</option>
+                                <option value="ai">AI Discovery</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <textarea id="crawlDescription" rows="3" 
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                  placeholder="Describe what you want to crawl"></textarea>
+                    </div>
+
+                    <!-- URL Input (Manual Mode) -->
+                    <div id="manualUrlSection">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">URLs to Crawl</label>
+                        <div class="space-y-2">
+                            <textarea id="urlList" rows="4" 
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      placeholder="Enter URLs (one per line)&#10;https://example.com&#10;https://another-site.com"></textarea>
+                            <button type="button" id="validateUrls" class="btn-secondary">
+                                <i class="fas fa-check-circle mr-1"></i>Validate URLs
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- AI Discovery Section -->
+                    <div id="aiDiscoverySection" style="display: none;">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Groq API Key</label>
+                                <input type="password" id="groqApiKey" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                       placeholder="Enter your Groq API key">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">AI Model</label>
+                                <select id="aiModel" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="llama-3.1-70b-versatile">Llama 3.1 70B</option>
+                                    <option value="llama-3.1-8b-instant">Llama 3.1 8B</option>
+                                    <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Discovery Prompt</label>
+                            <textarea id="aiPrompt" rows="3" 
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      placeholder="Describe what websites you want to find..."></textarea>
+                            <button type="button" id="discoverUrls" class="mt-2 btn-primary">
+                                <i class="fas fa-search mr-1"></i>Discover URLs
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Configuration -->
+                    <div class="border-t pt-6">
+                        <h3 class="text-lg font-semibold mb-4">Advanced Configuration</h3>
+                        
+                        <!-- Crawl Strategy -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Crawl Strategy</label>
+                                <select id="crawlStrategy" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                    <option value="smart">Smart Crawling</option>
+                                    <option value="basic">Basic Crawling</option>
+                                    <option value="ai_extraction">AI Extraction</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Max Concurrent</label>
+                                <input type="number" id="maxConcurrent" value="5" min="1" max="20"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Crawl Delay (ms)</label>
+                                <input type="number" id="crawlDelay" value="1000" min="0" max="10000"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            </div>
+                        </div>
+
+                        <!-- Feature Toggles -->
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="enableDeepCrawl" class="rounded">
+                                <span class="text-sm">Deep Crawling</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="enablePagination" class="rounded">
+                                <span class="text-sm">Pagination</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="generateMarkdown" checked class="rounded">
+                                <span class="text-sm">Generate Markdown</span>
+                            </label>
+                            <label class="flex items-center space-x-2">
+                                <input type="checkbox" id="extractMetadata" checked class="rounded">
+                                <span class="text-sm">Extract Metadata</span>
+                            </label>
+                        </div>
+
+                        <!-- Extraction Schema -->
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Custom Extraction Schema (Optional)</label>
+                            <div class="monaco-container" id="extractionSchemaEditor"></div>
+                            <p class="text-xs text-gray-500 mt-1">Define JSON schema for custom data extraction</p>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="flex justify-end space-x-4">
+                        <button type="button" class="btn-secondary">
+                            <i class="fas fa-save mr-1"></i>Save as Template
+                        </button>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-play mr-1"></i>Create & Start Session
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Sessions Tab -->
+        <div id="sessions" class="tab-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">
+                    <i class="fas fa-list mr-2"></i>Crawl Sessions
+                </h2>
+                <div class="flex space-x-2">
+                    <button id="refreshSessions" class="btn-secondary">
+                        <i class="fas fa-sync-alt mr-1"></i>Refresh
+                    </button>
+                    <button id="runTests" class="btn-primary">
+                        <i class="fas fa-vial mr-1"></i>Run Tests
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sessions List -->
+            <div id="sessionsList" class="space-y-4">
+                <!-- Sessions will be dynamically loaded here -->
+            </div>
+        </div>
+
+        <!-- Extraction Tab -->
+        <div id="extraction" class="tab-content">
+            <div class="metric-card max-w-4xl mx-auto">
+                <h2 class="text-2xl font-bold mb-6">
+                    <i class="fas fa-magic mr-2"></i>Extraction Testing
+                </h2>
+
+                <!-- URL and Schema Testing -->
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Test URL</label>
+                        <input type="url" id="testUrl" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="https://example.com">
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Extraction Schema</label>
+                            <div class="monaco-container" id="testExtractionEditor"></div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Extraction Results</label>
+                            <div class="monaco-container" id="extractionResultsEditor"></div>
+                        </div>
+                    </div>
+
+                    <div class="flex space-x-4">
+                        <button type="button" id="testExtraction" class="btn-primary">
+                            <i class="fas fa-play mr-1"></i>Test Extraction
+                        </button>
+                        <button type="button" id="suggestSelectors" class="btn-secondary">
+                            <i class="fas fa-lightbulb mr-1"></i>Suggest Selectors
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Proxies Tab -->
+        <div id="proxies" class="tab-content">
+            <div class="metric-card">
+                <h2 class="text-2xl font-bold mb-6">
+                    <i class="fas fa-shield-alt mr-2"></i>Proxy Management
+                </h2>
+
+                <div class="flex justify-between items-center mb-6">
+                    <div class="flex space-x-4">
+                        <button id="testAllProxies" class="btn-primary">
+                            <i class="fas fa-heartbeat mr-1"></i>Test All Proxies
+                        </button>
+                        <button id="addCustomProxies" class="btn-secondary">
+                            <i class="fas fa-plus mr-1"></i>Add Custom Proxies
+                        </button>
+                    </div>
+                    <div class="text-sm text-gray-600" id="proxyStats">
+                        Loading proxy statistics...
+                    </div>
+                </div>
+
+                <!-- Proxy List -->
+                <div id="proxyList">
+                    <!-- Proxies will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Testing Tab -->
+        <div id="testing" class="tab-content">
+            <div class="metric-card">
+                <h2 class="text-2xl font-bold mb-6">
+                    <i class="fas fa-vial mr-2"></i>System Testing
+                </h2>
+
+                <div class="space-y-6">
+                    <!-- Test Controls -->
+                    <div class="flex space-x-4">
+                        <button id="runCrawlerTests" class="btn-primary">
+                            <i class="fas fa-play mr-1"></i>Run Crawler Tests
+                        </button>
+                        <button id="runPerformanceTests" class="btn-secondary">
+                            <i class="fas fa-tachometer-alt mr-1"></i>Performance Tests
+                        </button>
+                        <button id="runIntegrationTests" class="btn-secondary">
+                            <i class="fas fa-puzzle-piece mr-1"></i>Integration Tests
+                        </button>
+                    </div>
+
+                    <!-- Test Results -->
+                    <div id="testResults" class="bg-gray-50 rounded-lg p-4 min-h-96">
+                        <p class="text-gray-500 text-center py-8">Run tests to see results here</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced JavaScript with Real-time Updates
+        class SmartScrapeApp {
+            constructor() {
+                this.baseUrl = '';
+                this.updateInterval = null;
+                this.activeConnections = new Set();
+                this.charts = {};
+                this.editors = {};
+                
+                this.init();
+            }
+
+            async init() {
+                console.log('🚀 Initializing SmartScrape Enhanced Edition...');
+                
+                // Initialize Monaco Editor
+                this.initMonacoEditors();
+                
+                // Setup event listeners
+                this.setupEventListeners();
+                
+                // Start real-time updates
+                this.startRealTimeUpdates();
+                
+                // Load initial data
+                await this.loadInitialData();
+                
+                // Initialize charts
+                this.initCharts();
+                
+                console.log('✅ SmartScrape initialized successfully');
+            }
+
+            // Monaco Editor initialization
+            initMonacoEditors() {
+                if (typeof monaco !== 'undefined') {
+                    // Extraction Schema Editor
+                    this.editors.extractionSchema = monaco.editor.create(
+                        document.getElementById('extractionSchemaEditor'),
+                        {
+                            value: JSON.stringify({
+                                fields: [
+                                    { name: "title", selector: "h1", attribute: "text" },
+                                    { name: "links", selector: "a[href]", attribute: "href", multiple: true }
+                                ]
+                            }, null, 2),
+                            language: 'json',
+                            theme: 'vs-light',
+                            minimap: { enabled: false },
+                            scrollBeyondLastLine: false
+                        }
+                    );
+
+                    // Test Extraction Editor
+                    this.editors.testExtraction = monaco.editor.create(
+                        document.getElementById('testExtractionEditor'),
+                        {
+                            value: JSON.stringify({
+                                fields: [
+                                    { name: "title", selector: "title", attribute: "text" },
+                                    { name: "description", selector: "meta[name='description']", attribute: "content" }
+                                ]
+                            }, null, 2),
+                            language: 'json',
+                            theme: 'vs-light',
+                            minimap: { enabled: false }
+                        }
+                    );
+
+                    // Extraction Results Editor (Read-only)
+                    this.editors.extractionResults = monaco.editor.create(
+                        document.getElementById('extractionResultsEditor'),
+                        {
+                            value: '// Results will appear here after testing',
+                            language: 'json',
+                            theme: 'vs-light',
+                            readOnly: true,
+                            minimap: { enabled: false }
+                        }
+                    );
+                }
+            }
+
+            // Setup event listeners
+            setupEventListeners() {
+                // Start method toggle
+                document.getElementById('startMethod').addEventListener('change', (e) => {
+                    const isAI = e.target.value === 'ai';
+                    document.getElementById('manualUrlSection').style.display = isAI ? 'none' : 'block';
+                    document.getElementById('aiDiscoverySection').style.display = isAI ? 'block' : 'none';
+                });
+
+                // Crawl form submission
+                document.getElementById('crawlForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.createCrawlSession();
+                });
+
+                // URL discovery
+                document.getElementById('discoverUrls').addEventListener('click', () => {
+                    this.discoverUrls();
+                });
+
+                // Test extraction
+                document.getElementById('testExtraction').addEventListener('click', () => {
+                    this.testExtraction();
+                });
+
+                // Suggest selectors
+                document.getElementById('suggestSelectors').addEventListener('click', () => {
+                    this.suggestSelectors();
+                });
+
+                // Refresh sessions
+                document.getElementById('refreshSessions').addEventListener('click', () => {
+                    this.loadSessions();
+                });
+
+                // Run tests
+                document.getElementById('runTests').addEventListener('click', () => {
+                    this.runCrawlerTests();
+                });
+
+                // Test all proxies
+                document.getElementById('testAllProxies').addEventListener('click', () => {
+                    this.testAllProxies();
+                });
+            }
+
+            // Real-time updates
+            startRealTimeUpdates() {
+                this.updateInterval = setInterval(() => {
+                    this.updateDashboard();
+                    this.updateActiveSessions();
+                }, 5000);
+            }
+
+            // Load initial data
+            async loadInitialData() {
+                await Promise.all([
+                    this.loadDashboardStats(),
+                    this.loadSessions(),
+                    this.loadProxies(),
+                    this.checkSystemHealth()
+                ]);
+            }
+
+            // Dashboard methods
+            async loadDashboardStats() {
+                try {
+                    const response = await fetch('/api/crawl/sessions');
+                    const data = await response.json();
+                    
+                    const stats = this.calculateStats(data.sessions || []);
+                    this.updateQuickStats(stats);
+                } catch (error) {
+                    console.error('Error loading dashboard stats:', error);
+                }
+            }
+
+            calculateStats(sessions) {
+                const active = sessions.filter(s => s.status === 'running').length;
+                const total = sessions.reduce((sum, s) => sum + (s.urls_completed || 0), 0);
+                const successful = sessions.reduce((sum, s) => sum + (s.urls_completed || 0), 0);
+                const failed = sessions.reduce((sum, s) => sum + (s.urls_failed || 0), 0);
+                const successRate = total > 0 ? Math.round((successful / (successful + failed)) * 100) : 0;
+                
+                return { active, total, successRate, avgSpeed: '1.2s' };
+            }
+
+            updateQuickStats(stats) {
+                document.getElementById('activeSessions').textContent = stats.active;
+                document.getElementById('urlsCrawled').textContent = stats.total.toLocaleString();
+                document.getElementById('successRate').textContent = `${stats.successRate}%`;
+                document.getElementById('avgSpeed').textContent = stats.avgSpeed;
+            }
+
+            // Session management
+            async createCrawlSession() {
+                const formData = this.getFormData();
+                
+                try {
+                    this.showNotification('Creating crawl session...', 'info');
+                    
+                    const response = await fetch('/api/crawl/sessions', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                    const result = await response.json();
+                    this.showNotification('Session created successfully!', 'success');
+                    
+                    // Start the session automatically
+                    await this.startSession(result.id);
+                    
+                    // Switch to sessions tab
+                    this.showTab('sessions');
+                    await this.loadSessions();
+                    
+                } catch (error) {
+                    this.showNotification(`Error: ${error.message}`, 'error');
+                }
+            }
+
+            async startSession(sessionId) {
+                try {
+                    const response = await fetch(`/api/crawl/sessions/${sessionId}/start`, {
+                        method: 'POST'
+                    });
+
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                    this.showNotification('Session started!', 'success');
+                } catch (error) {
+                    this.showNotification(`Error starting session: ${error.message}`, 'error');
+                }
+            }
+
+            getFormData() {
+                const startMethod = document.getElementById('startMethod').value;
+                
+                const baseData = {
+                    title: document.getElementById('crawlTitle').value,
+                    description: document.getElementById('crawlDescription').value,
+                    start_method: startMethod,
+                    crawl_strategy: document.getElementById('crawlStrategy').value,
+                    max_concurrent: parseInt(document.getElementById('maxConcurrent').value),
+                    crawl_delay: parseInt(document.getElementById('crawlDelay').value),
+                    enable_deep_crawl: document.getElementById('enableDeepCrawl').checked,
+                    enable_pagination: document.getElementById('enablePagination').checked,
+                    generate_markdown: document.getElementById('generateMarkdown').checked,
+                    extract_metadata: document.getElementById('extractMetadata').checked
+                };
+
+                if (startMethod === 'manual') {
+                    const urls = document.getElementById('urlList').value
+                        .split('\n')
+                        .map(url => url.trim())
+                        .filter(url => url);
+                    baseData.urls = urls;
+                } else {
+                    baseData.ai_prompt = document.getElementById('aiPrompt').value;
+                    baseData.groq_model = document.getElementById('aiModel').value;
+                }
+
+                // Add extraction schema if provided
+                if (this.editors.extractionSchema) {
+                    try {
+                        const schema = JSON.parse(this.editors.extractionSchema.getValue());
+                        baseData.ai_extraction_schema = schema;
+                    } catch (e) {
+                        // Invalid JSON, skip
+                    }
+                }
+
+                return baseData;
+            }
+
+            // Chart initialization
+            initCharts() {
+                // Performance Chart
+                const perfCtx = document.getElementById('performanceChart').getContext('2d');
+                this.charts.performance = new Chart(perfCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['1h ago', '45m ago', '30m ago', '15m ago', 'Now'],
+                        datasets: [{
+                            label: 'URLs/min',
+                            data: [12, 19, 15, 25, 22],
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
+                    }
+                });
+
+                // Status Chart
+                const statusCtx = document.getElementById('statusChart').getContext('2d');
+                this.charts.status = new Chart(statusCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Completed', 'Failed', 'Blocked', 'Running'],
+                        datasets: [{
+                            data: [65, 20, 10, 5],
+                            backgroundColor: ['#10b981', '#ef4444', '#f59e0b', '#3b82f6']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+
+            // Utility methods
+            showTab(tabName) {
+                // Hide all tabs
+                document.querySelectorAll('.tab-content').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                // Show selected tab
+                document.getElementById(tabName).classList.add('active');
+                
+                // Update tab buttons
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                event.target.classList.add('active');
+            }
+
+            showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span>${message}</span>
+                        <button onclick="this.parentElement.parentElement.remove()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+                
+                document.getElementById('notifications').appendChild(notification);
+                
+                // Show notification
+                setTimeout(() => notification.classList.add('show'), 100);
+                
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => notification.remove(), 300);
+                }, 5000);
+            }
+
+            // Placeholder methods for remaining functionality
+            async discoverUrls() { /* Implementation */ }
+            async testExtraction() { /* Implementation */ }
+            async suggestSelectors() { /* Implementation */ }
+            async loadSessions() { /* Implementation */ }
+            async loadProxies() { /* Implementation */ }
+            async checkSystemHealth() { /* Implementation */ }
+            async runCrawlerTests() { /* Implementation */ }
+            async testAllProxies() { /* Implementation */ }
+            async updateDashboard() { /* Implementation */ }
+            async updateActiveSessions() { /* Implementation */ }
+        }
+
+        // Global functions for tab switching
+        function showTab(tabName) {
+            app.showTab(tabName);
+        }
+
+        // Initialize app when page loads
+        let app;
+        document.addEventListener('DOMContentLoaded', () => {
+            app = new SmartScrapeApp();
+        });
+    </script>
+</body>
+</html>

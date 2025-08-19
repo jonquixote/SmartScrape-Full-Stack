@@ -17,7 +17,12 @@
     "test": "curl http://localhost:3000"
   },
   "dependencies": {
-    "hono": "^4.9.2"
+    "@types/cheerio": "^0.22.35",
+    "axios": "^1.11.0",
+    "cheerio": "^1.1.2",
+    "hono": "^4.9.2",
+    "jsdom": "^26.1.0",
+    "turndown": "^7.2.1"
   },
   "devDependencies": {
     "@hono/vite-build": "^1.2.0",

@@ -250,9 +250,9 @@ crawl.post('/sessions/:id/start', async (c) => {
       return c.json({ error: 'Crawl session is already running' }, 400);
     }
 
-    // Import and start the crawler engine
-    const { CrawlerEngine } = await import('./crawler-engine');
-    const crawler = new CrawlerEngine(c.env.DB, sessionId, session as any);
+    // Import and start the enhanced crawler engine
+    const { EnhancedCrawlerEngine } = await import('./enhanced-crawler-engine');
+    const crawler = new EnhancedCrawlerEngine(c.env.DB, sessionId, session as any);
     
     // Store the crawler instance for potential stopping
     activeCrawlers.set(sessionId, crawler);
@@ -481,6 +481,197 @@ crawl.get('/sessions/:id/export/:format', async (c) => {
   } catch (error) {
     console.error('Error exporting crawl results:', error);
     return c.json({ error: 'Failed to export crawl results' }, 500);
+  }
+});
+
+// Test extraction schema on a single URL
+crawl.post('/test-extraction', async (c) => {
+  try {
+    const body = await c.req.json();
+    const { url, extraction_schema } = body;
+    
+    if (!url || !extraction_schema) {
+      return c.json({ error: 'Missing required fields: url, extraction_schema' }, 400);
+    }
+
+    // Import enhanced crawler for testing
+    const { EnhancedCrawlerEngine } = await import('./enhanced-crawler-engine');
+    
+    // Create a temporary test session
+    const testSession = {
+      ai_extraction_schema: JSON.stringify(extraction_schema),
+      smart_cleaning: true,
+      remove_ads: true,
+      remove_navigation: true
+    } as any;
+
+    const crawler = new EnhancedCrawlerEngine(c.env.DB, -1, testSession);
+    
+    // Test the extraction without saving to database
+    const result = await (crawler as any).crawlUrl(url, {
+      extractionSchema: extraction_schema,
+      smartCleaning: true,
+      removeAds: true,
+      removeNavigation: true
+    });
+
+    return c.json({
+      url: result.url,
+      status: result.status,
+      title: result.title,
+      extractedData: result.extractedData,
+      error: result.error
+    });
+  } catch (error) {
+    console.error('Error testing extraction:', error);
+    return c.json({ error: 'Failed to test extraction' }, 500);
+  }
+});
+
+// Get extraction suggestions for a URL
+crawl.post('/suggest-selectors', async (c) => {
+  try {
+    const body = await c.req.json();
+    const { url } = body;
+    
+    if (!url) {
+      return c.json({ error: 'Missing required field: url' }, 400);
+    }
+
+    // Fetch the page and analyze structure
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      }
+    });
+
+    if (!response.ok) {
+      return c.json({ error: `Failed to fetch URL: ${response.status}` }, 400);
+    }
+
+    const html = await response.text();
+    
+    // Use Cheerio to analyze structure
+    const cheerio = await import('cheerio');
+    const $ = cheerio.load(html);
+
+    const suggestions = {
+      titles: [],
+      headings: [],
+      links: [],
+      images: [],
+      lists: [],
+      tables: [],
+      forms: []
+    };
+
+    // Analyze common elements
+    $('h1, h2, h3').each((i, elem) => {
+      const text = $(elem).text().trim();
+      if (text && i < 10) {
+        suggestions.headings.push({
+          selector: elem.tagName.toLowerCase(),
+          text: text.substring(0, 100),
+          count: $(elem.tagName).length
+        });
+      }
+    });
+
+    $('a[href]').each((i, elem) => {
+      if (i < 10) {
+        const href = $(elem).attr('href');
+        const text = $(elem).text().trim();
+        suggestions.links.push({
+          selector: 'a[href]',
+          href: href,
+          text: text.substring(0, 50)
+        });
+      }
+    });
+
+    $('img[src]').each((i, elem) => {
+      if (i < 10) {
+        const src = $(elem).attr('src');
+        const alt = $(elem).attr('alt');
+        suggestions.images.push({
+          selector: 'img[src]',
+          src: src,
+          alt: alt || ''
+        });
+      }
+    });
+
+    return c.json({ suggestions });
+  } catch (error) {
+    console.error('Error suggesting selectors:', error);
+    return c.json({ error: 'Failed to analyze page structure' }, 500);
+  }
+});
+
+// Advanced crawl analytics
+crawl.get('/sessions/:id/analytics', async (c) => {
+  try {
+    const sessionId = c.req.param('id');
+    
+    // Get detailed analytics for the session
+    const [sessionData, urlStats, domainStats, statusStats] = await Promise.all([
+      c.env.DB.prepare(`SELECT * FROM crawl_sessions WHERE id = ?`).bind(sessionId).first(),
+      
+      c.env.DB.prepare(`
+        SELECT 
+          COUNT(*) as total_urls,
+          AVG(response_time) as avg_response_time,
+          MAX(response_time) as max_response_time,
+          MIN(response_time) as min_response_time,
+          AVG(LENGTH(content)) as avg_content_length
+        FROM crawl_urls WHERE session_id = ?
+      `).bind(sessionId).first(),
+      
+      c.env.DB.prepare(`
+        SELECT 
+          SUBSTR(url, 1, INSTR(SUBSTR(url, 9), '/') + 8) as domain,
+          COUNT(*) as count
+        FROM crawl_urls 
+        WHERE session_id = ? 
+        GROUP BY domain 
+        ORDER BY count DESC 
+        LIMIT 10
+      `).bind(sessionId).all(),
+      
+      c.env.DB.prepare(`
+        SELECT status, COUNT(*) as count
+        FROM crawl_urls 
+        WHERE session_id = ? 
+        GROUP BY status
+      `).bind(sessionId).all()
+    ]);
+
+    const analytics = {
+      session: sessionData,
+      performance: urlStats,
+      domains: domainStats.results,
+      statusBreakdown: statusStats.results,
+      crawlEfficiency: {
+        successRate: 0,
+        blockRate: 0,
+        failRate: 0
+      }
+    };
+
+    // Calculate efficiency metrics
+    const total = (sessionData as any)?.urls_discovered || 0;
+    if (total > 0) {
+      analytics.crawlEfficiency = {
+        successRate: Math.round(((sessionData as any).urls_completed / total) * 100),
+        blockRate: Math.round(((sessionData as any).urls_blocked / total) * 100),
+        failRate: Math.round(((sessionData as any).urls_failed / total) * 100)
+      };
+    }
+
+    return c.json(analytics);
+  } catch (error) {
+    console.error('Error fetching crawl analytics:', error);
+    return c.json({ error: 'Failed to fetch crawl analytics' }, 500);
   }
 });
 

@@ -1,0 +1,1 @@
+.schema crawl_urls

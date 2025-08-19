@@ -1,0 +1,1754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crawl4AI Ultimate Pro - Fully-Featured Edition</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/turndown/dist/turndown.js"></script>
+    <style>
+        /* General Styling & Layout */
+        .tab-content, .step-content { display: none; }
+        .tab-content.active, .step-content.active { display: block; }
+        .progress-bar { transition: width 0.3s ease; }
+        
+        /* Glassmorphism & Gradients */
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: white; font-weight: 500; padding: 0.75rem 1rem;
+            border-radius: 0.5rem; border: none; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-secondary { background: #6b7280; color: white; font-weight: 500; padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; cursor: pointer; transition: all 0.2s; }
+        .btn-secondary:hover:not(:disabled) { background: #4b5563; }
+        .btn-danger { background: #ef4444; color: white; font-weight: 500; padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; cursor: pointer; transition: all 0.2s; }
+        .btn-danger:hover:not(:disabled) { background: #dc2626; }
+        .btn-success { background: #10b981; color: white; font-weight: 500; padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; cursor: pointer; transition: all 0.2s; }
+        .btn-success:hover:not(:disabled) { background: #059669; }
+
+        /* Forms & Messages */
+        .form-input, .form-select {
+            width: 100%; padding: 0.75rem; border: 1px solid #d1d5db;
+            border-radius: 0.5rem; outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-input:focus, .form-select:focus {
+            border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .message { padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; }
+        .message.success { background: #dcfce7; border: 1px solid #bbf7d0; color: #166534; }
+        .message.error { background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; }
+        .message.warning { background: #fef3c7; border: 1px solid #fde68a; color: #92400e; }
+
+        /* Cards & Sections */
+        .crawl-card { 
+            transition: all 0.3s ease; 
+            page-break-inside: avoid;
+        }
+        .crawl-card:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
+        }
+        .crawl-card.success { border-left: 4px solid #10B981; }
+        .crawl-card.failed { border-left: 4px solid #EF4444; }
+        .crawl-card.blocked { border-left: 4px solid #F59E0B; }
+        .crawl-card.processing { border-left: 4px solid #8B5CF6; }
+        .crawl-card.discovered { border-left: 4px solid #3B82F6; }
+        .metric-card {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        /* Visual Selector (Guide Mode) */
+        #guide-modal { display: none; }
+        #guide-iframe { width: 100%; height: 100%; border: none; }
+        #guide-popup { position: absolute; display: none; background: white; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 1rem; z-index: 10000; }
+        .visual-selector-highlight { outline: 2px dashed #f43f5e !important; background-color: rgba(244, 63, 94, 0.2) !important; cursor: pointer !important; }
+
+        /* Animations */
+        .pulse-ring { animation: pulse-ring 1.5s ease-out infinite; }
+        @keyframes pulse-ring { 0% { transform: scale(.33); opacity: 1; } 80%, 100% { opacity: 0; transform: scale(1.5); } }
+        .animate-bounce-slow { animation: bounce 2s infinite; }
+        .stats-chart { height: 300px; margin-top: 1rem; }
+        
+        /* Proxy Table */
+        .proxy-table-container { max-height: 250px; overflow-y: auto; }
+
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <div class="glass-effect shadow-lg mb-6 sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="relative">
+                        <i class="fas fa-spider text-blue-600 text-3xl mr-3"></i>
+                        <div class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full pulse-ring"></div>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold gradient-text">Crawl4AI Ultimate Pro</h1>
+                        <p class="text-gray-600 text-sm">Fully-Featured Edition</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <button id="save-config" class="btn-secondary no-print"><i class="fas fa-save mr-1"></i>Save</button>
+                        <button id="load-config" class="btn-secondary no-print"><i class="fas fa-folder-open mr-1"></i>Load</button>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="bg-gray-200 px-3 py-2 rounded-full flex items-center">
+                            <div class="w-2 h-2 bg-green-500 rounded-full mr-2" id="connection-indicator"></div>
+                            <span class="text-sm font-medium" id="connection-status">Ready</span>
+                        </div>
+                        <button id="clear-all-btn" class="btn-danger no-print">
+                            <i class="fas fa-trash mr-1"></i>Clear All
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4">
+        <div id="message-container" class="mb-6"></div>
+        <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+            <!-- Configuration Panel -->
+            <div class="xl:col-span-1">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex flex-wrap border-b mb-6">
+                        <button class="tab-btn flex-1 min-w-0 py-2 px-1 text-center border-b-2 border-blue-600 text-blue-600 font-medium text-xs" data-tab="start">Start</button>
+                        <button class="tab-btn flex-1 min-w-0 py-2 px-1 text-center border-b-2 border-transparent text-gray-500 hover:text-gray-700 text-xs" data-tab="discovery">Discovery & Pagination</button>
+                        <button class="tab-btn flex-1 min-w-0 py-2 px-1 text-center border-b-2 border-transparent text-gray-500 hover:text-gray-700 text-xs" data-tab="evasion">Evasion</button>
+                        <button class="tab-btn flex-1 min-w-0 py-2 px-1 text-center border-b-2 border-transparent text-gray-500 hover:text-gray-700 text-xs" data-tab="extraction">Extraction & AI</button>
+                        <button class="tab-btn flex-1 min-w-0 py-2 px-1 text-center border-b-2 border-transparent text-gray-500 hover:text-gray-700 text-xs" data-tab="advanced">Advanced</button>
+                    </div>
+
+                    <div class="tab-content active" id="start-tab">
+                        <div id="start-step-1" class="step-content active">
+                            <h3 class="text-lg font-semibold mb-2 text-gray-800">1. Define Crawl Target</h3>
+                            <div class="space-y-3">
+                                <label class="flex items-center p-3 border rounded-lg cursor-pointer has-[:checked]:bg-blue-50 has-[:checked]:border-blue-500">
+                                    <input type="radio" name="start-method" value="ai" class="mr-3" checked>
+                                    <div>
+                                        <p class="font-medium">Discover URLs with AI</p>
+                                        <p class="text-xs text-gray-500">Describe what you want to find.</p>
+                                    </div>
+                                </label>
+                                <label class="flex items-center p-3 border rounded-lg cursor-pointer has-[:checked]:bg-blue-50 has-[:checked]:border-blue-500">
+                                    <input type="radio" name="start-method" value="manual" class="mr-3">
+                                    <div>
+                                        <p class="font-medium">Use My Own URLs</p>
+                                        <p class="text-xs text-gray-500">Enter a list of specific websites.</p>
+                                    </div>
+                                </label>
+                            </div>
+                            <div id="ai-discovery-inputs" class="mt-4 space-y-4">
+                                <div><label class="block text-sm font-medium text-gray-700 mb-2">Prompt</label><textarea id="ai-prompt" class="form-input" rows="3" placeholder="e.g., 'Top 10 tech news blogs in California'"></textarea></div>
+                                <div><label class="block text-sm font-medium text-gray-700 mb-2">Groq API Key</label><input type="password" id="ai-groq-api-key" class="form-input" placeholder="gsk_..."></div>
+                                <div><label class="block text-sm font-medium text-gray-700 mb-2">Model</label><select id="ai-model" class="form-select"><option value="llama3-70b-8192" selected>LLaMA Scout</option><option value="gemma2-9b-it">Maverick</option></select></div>
+                                <button id="ai-search-btn" class="btn-primary w-full">Search</button>
+                            </div>
+                            <div id="manual-url-inputs" class="mt-4 space-y-4" style="display: none;">
+                                 <div><label class="block text-sm font-medium text-gray-700 mb-2">Starting URLs</label><textarea id="urls-input" class="form-input" rows="6" placeholder="Enter starting URLs, one per line..."></textarea></div>
+                            </div>
+                        </div>
+                         <div id="start-step-2" class="step-content">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-800">2. Select URLs to Crawl</h3>
+                            <div id="ai-results-checklist" class="space-y-2 max-h-64 overflow-y-auto"></div>
+                            <div class="flex space-x-2 mt-4">
+                                <button id="back-to-step-1" class="btn-secondary flex-1">Back</button>
+                                <button id="confirm-selection-btn" class="btn-primary flex-1">Confirm & Continue</button>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-4 border-t space-y-4">
+                            <div><label class="block text-sm font-medium text-gray-700 mb-2"><i class="fas fa-cog mr-1 text-purple-500"></i>Crawl Strategy</label><select id="crawl-mode" class="form-select"><option value="basic">Basic Crawl</option><option value="smart" selected>Smart Mode</option><option value="magic">Magic Mode (AI Enhanced)</option><option value="comprehensive">Comprehensive</option><option value="adaptive">Adaptive Crawling</option><option value="deep">Deep Discovery</option></select></div>
+                            <div class="bg-blue-50 rounded-lg p-3">
+                                <h4 class="font-medium text-blue-800 mb-2">Output Options</h4>
+                                <div class="space-y-2">
+                                    <label class="flex items-center"><input type="checkbox" id="extract-markdown" class="mr-2 rounded" checked><span class="text-sm">Generate Markdown</span></label>
+                                    <label class="flex items-center"><input type="checkbox" id="extract-metadata" class="mr-2 rounded" checked><span class="text-sm">Extract Metadata</span></label>
+                                    <label class="flex items-center"><input type="checkbox" id="extract-links" class="mr-2 rounded" checked><span class="text-sm">Extract Links</span></label>
+                                    <label class="flex items-center"><input type="checkbox" id="extract-media" class="mr-2 rounded"><span class="text-sm">Extract Media Files</span></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-content" id="discovery-tab">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="flex items-center"><input type="checkbox" id="enable-deep-crawl" class="mr-2 rounded"><span class="font-medium">Enable Deep Crawling</span></label>
+                                <div id="deep-crawl-options" class="pl-4 border-l-2 space-y-3 mt-2" style="display: none;">
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div><label class="block text-xs font-medium text-gray-600">Max Depth</label><input type="number" id="max-depth" class="form-input text-sm" value="3" min="1"></div>
+                                        <div><label class="block text-xs font-medium text-gray-600">Max URLs</label><input type="number" id="max-urls" class="form-input text-sm" value="50" min="1"></div>
+                                    </div>
+                                    <div><label class="block text-xs font-medium text-gray-600">Domain Strategy</label><select id="domain-strategy" class="form-select text-sm"><option value="same-domain" selected>Same Domain</option><option value="same-subdomain">Same Subdomain</option><option value="whitelist">Whitelist Domains</option><option value="any">Any Domain</option></select></div>
+                                    <div id="domain-whitelist-container" style="display: none;">
+                                        <label class="block text-xs font-medium text-gray-600">Allowed Domains</label>
+                                        <input type="text" id="domain-whitelist" class="form-input text-sm" placeholder="example.com, subdomain.example.com">
+                                        <div id="domain-chips" class="mt-2"></div>
+                                    </div>
+                                    <div class="pt-2 border-t mt-2 space-y-2">
+                                        <div><label class="flex items-center text-sm"><input type="checkbox" id="respect-robots" class="mr-2 rounded" checked>Respect robots.txt</label></div>
+                                        <div><label class="flex items-center text-sm"><input type="checkbox" id="parse-sitemaps" class="mr-2 rounded" checked>Parse Sitemaps</label></div>
+                                        <div><label class="flex items-center text-sm"><input type="checkbox" id="discover-feeds" class="mr-2 rounded">Discover RSS/Atom Feeds</label></div>
+                                        <div><label class="block text-xs font-medium text-gray-600">Include Patterns</label><input type="text" id="include-patterns" class="form-input text-sm" placeholder="/blog/*, /articles/*, *.html"></div>
+                                        <div><label class="block text-xs font-medium text-gray-600">Exclude Patterns</label><input type="text" id="exclude-patterns" class="form-input text-sm" placeholder="/admin/*, /login/*, *.pdf"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pt-4 mt-4 border-t">
+                                <label class="flex items-center"><input type="checkbox" id="enable-pagination" class="mr-2 rounded"><span class="font-medium">Enable Pagination Crawling</span></label>
+                                <div id="pagination-options" class="pl-4 border-l-2 space-y-3 mt-2" style="display: none;">
+                                    <div><label class="block text-xs font-medium text-gray-600">Detection Strategy</label><select id="pagination-strategy" class="form-select text-sm"><option value="auto" selected>Auto-Detect (Smart)</option><option value="next-link">"Next" Links</option><option value="numbered">Numbered Pages</option><option value="infinite-scroll">Infinite Scroll (Experimental)</option><option value="custom-selector">Custom CSS Selector</option></select></div>
+                                    <div id="custom-selector-options" style="display: none;"><label class="block text-xs font-medium text-gray-600">Next Page CSS Selector</label><input type="text" id="next-page-selector" class="form-input text-sm" placeholder="a.next, .pagination-next, [rel='next']"></div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div><label class="block text-xs font-medium text-gray-600">Max Pages</label><input type="number" id="max-pages" class="form-input text-sm" value="10" min="1"></div>
+                                        <div><label class="block text-xs font-medium text-gray-600">Page Delay (s)</label><input type="number" id="page-delay" class="form-input text-sm" value="2" min="1"></div>
+                                    </div>
+                                    <div><label class="flex items-center text-sm"><input type="checkbox" id="deduplicate-paginated" class="mr-2 rounded" checked>Remove Duplicate Content</label></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="evasion-tab">
+                        <div class="space-y-4">
+                            <h4 class="font-semibold text-gray-800"><i class="fas fa-user-secret mr-1 text-yellow-600"></i>Proxy Intelligence Engine</h4>
+                             <div class="flex space-x-2">
+                                <button id="test-proxies" class="btn-secondary flex-1 text-sm"><i class="fas fa-shield-alt mr-2"></i>Test All</button>
+                            </div>
+                            <div id="proxy-test-progress-container" class="w-full bg-gray-200 rounded-full h-2.5" style="display: none;">
+                                <div id="proxy-test-progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+                            </div>
+                            <div class="proxy-table-container">
+                                <table class="w-full text-left text-xs">
+                                    <thead>
+                                        <tr class="border-b">
+                                            <th class="py-1">Proxy Source/IP</th>
+                                            <th class="py-1">Status</th>
+                                            <th class="py-1">Latency</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="proxy-list-table">
+                                        <tr><td colspan="3" class="text-center py-4 text-gray-500">No proxies loaded.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                             <div class="bg-gray-50 p-3 rounded-md border">
+                                <label class="flex items-center justify-between text-sm">
+                                    <span>Auto-test proxies every</span>
+                                    <input type="number" id="auto-test-interval" class="form-input text-sm w-20" value="120">
+                                    <span>seconds</span>
+                                </label>
+                            </div>
+                            <div id="custom-proxy-container">
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Custom Proxy List URL</label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="text" id="custom-proxy-url" class="form-input text-sm flex-grow" placeholder="https://my-api.com/proxies.txt">
+                                    <select id="proxy-quantity-selector" class="form-select text-sm" style="width: auto;">
+                                        <option value="5">5</option>
+                                        <option value="10">10</option>
+                                        <option value="25" selected>25</option>
+                                        <option value="50">50</option>
+                                        <option value="100">100</option>
+                                    </select>
+                                    <button id="add-custom-proxies-btn" class="btn-success p-2 h-full" title="Fetch, test, and add best proxies from URL">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="extraction-tab">
+                         <div class="space-y-4">
+                            <div>
+                                <h4 class="font-semibold text-gray-800 mb-2"><i class="fas fa-magic mr-1 text-pink-500"></i>AI-Powered Extraction</h4>
+                                <div><label class="block text-sm font-medium text-gray-700 mb-2">Groq API Key</label><div class="relative"><input type="password" id="groq-api-key" class="form-input pr-10" placeholder="Required for AI features"><button type="button" id="toggle-api-key" class="absolute right-2 top-3 text-gray-400"><i class="fas fa-eye-slash"></i></button></div></div>
+                                <label class="flex items-center mt-2"><input type="checkbox" id="enable-ai-extraction" class="mr-2 rounded"><span class="font-medium">Enable AI Extraction</span></label>
+                                <div id="ai-options" class="pl-4 border-l-2 space-y-3 mt-2" style="display: none;">
+                                    <div><label class="block text-xs font-medium text-gray-600">LLM Model</label>
+                                        <select id="llm-model" class="form-select text-sm">
+                                            <option value="llama-3.1-70b-versatile">LLaMA 3.1 70B</option>
+                                            <option value="llama-3.1-8b-instant">LLaMA 3.1 8B (Fast)</option>
+                                            <option value="llama3-70b-8192">LLaMA 3 70B (8k)</option>
+                                            <option value="llama3-8b-8192">LLaMA 3 8B (8k)</option>
+                                            <option value="gemma2-9b-it" selected>Gemma 2 9B (Recommended)</option>
+                                            <option value="gemma-7b-it">Gemma 7B</option>
+                                            <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
+                                            <option value="whisper-large-v3">Whisper V3 (Audio Transcription)</option>
+                                        </select>
+                                    </div>
+                                    <div><label class="block text-xs font-medium text-gray-600">AI Request Delay (ms)</label><input type="number" id="ai-request-delay" class="form-input text-sm" value="500" min="100" step="100"></div>
+                                    <div><label class="block text-xs font-medium text-gray-600">Custom Prompt</label><textarea id="custom-prompt" class="form-input text-sm" rows="3">Extract the main content, title, and key information. Format as clean JSON.</textarea></div>
+                                </div>
+                            </div>
+                             <div class="pt-4 mt-4 border-t">
+                                <h4 class="font-semibold text-gray-800 mb-2"><i class="fas fa-crosshairs mr-1 text-blue-500"></i>Manual Extraction</h4>
+                                <div><label class="block text-sm font-medium text-gray-700 mb-2">CSS/XPath Extraction</label><div class="space-y-2"><input type="text" id="css-selector" class="form-input text-sm" placeholder="CSS Selector (e.g., .article-content, #main)"><input type="text" id="xpath-selector" class="form-input text-sm" placeholder="XPath (e.g., //div[@class='content'])"></div></div>
+                             </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="advanced-tab">
+                        <div class="space-y-4">
+                             <div class="grid grid-cols-2 gap-3">
+                                <div><label class="block text-xs font-medium text-gray-700">Timeout (s)</label><input type="number" id="timeout" class="form-input text-sm" value="10" min="5"></div>
+                                <div><label class="block text-xs font-medium text-gray-700">Max Retries</label><input type="number" id="max-retries" class="form-input text-sm" value="3" min="0"></div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div><label class="block text-xs font-medium text-gray-700">Crawl Delay (s)</label><input type="number" id="request-delay" class="form-input text-sm" value="1" min="0" step="0.1"></div>
+                                <div><label class="block text-xs font-medium text-gray-700">Delay Jitter (s)</label><input type="number" id="delay-jitter" class="form-input text-sm" value="0.5" min="0" step="0.1"></div>
+                            </div>
+                            <div><label class="block text-sm font-medium text-gray-700">Concurrent Requests</label><input type="number" id="concurrent-requests" class="form-input text-sm" value="3" min="1" max="10"></div>
+                            <div><label class="block text-sm font-medium text-gray-700">User Agents (one per line)</label><textarea id="user-agents" class="form-input text-sm" rows="5"></textarea></div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Content Processing</label>
+                                <div class="space-y-2 mt-2 bg-gray-50 p-3 rounded-md">
+                                    <label class="flex items-center text-sm"><input type="checkbox" id="smart-clean" class="mr-2 rounded" checked>Enable Smart Content Cleaning</label>
+                                    <label class="flex items-center text-sm"><input type="checkbox" id="filter-ads" class="mr-2 rounded" checked>Remove Ads & Trackers</label>
+                                    <label class="flex items-center text-sm"><input type="checkbox" id="filter-navigation" class="mr-2 rounded" checked>Remove Navigation</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t">
+                        <button id="start-crawl" class="btn-primary w-full flex items-center justify-center"><i class="fas fa-play mr-2"></i><span>Start Ultimate Crawling</span></button>
+                        <div class="flex space-x-2 mt-3">
+                            <button id="stop-crawl" class="btn-danger flex-1 text-sm" disabled><i class="fas fa-stop mr-1"></i>Stop</button>
+                            <button id="clear-results" class="btn-secondary flex-1 text-sm"><i class="fas fa-trash mr-1"></i>Clear</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Panel -->
+            <div class="xl:col-span-3">
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4"><i class="fas fa-chart-line mr-2 text-blue-600"></i>Progress Dashboard</h2>
+                    <div class="w-full bg-gray-200 rounded-full h-3 mb-4"><div id="progress-bar" class="progress-bar bg-gradient-to-r from-blue-600 to-purple-600 h-3 rounded-full" style="width: 0%"></div></div>
+                    <div class="grid grid-cols-2 md:grid-cols-6 gap-4 text-center">
+                        <div class="metric-card rounded-lg p-3"><div class="text-2xl font-bold text-blue-600" id="total-urls">0</div><div class="text-xs text-gray-600">Discovered</div></div>
+                        <div class="metric-card rounded-lg p-3"><div class="text-2xl font-bold text-green-600" id="completed-urls">0</div><div class="text-xs text-gray-600">Completed</div></div>
+                        <div class="metric-card rounded-lg p-3"><div class="text-2xl font-bold text-red-600" id="failed-urls">0</div><div class="text-xs text-gray-600">Failed</div></div>
+                        <div class="metric-card rounded-lg p-3"><div class="text-2xl font-bold text-yellow-600" id="blocks-encountered">0</div><div class="text-xs text-gray-600">Blocks</div></div>
+                        <div class="metric-card rounded-lg p-3"><div class="text-2xl font-bold text-indigo-600" id="current-speed">0</div><div class="text-xs text-gray-600">req/min</div></div>
+                        <div class="metric-card rounded-lg p-3"><div class="text-2xl font-bold text-purple-600" id="current-depth">0</div><div class="text-xs text-gray-600">Max Depth</div></div>
+                    </div>
+                    <div class="stats-chart"><canvas id="progressChart"></canvas></div>
+                    <div id="current-status" class="bg-gray-50 rounded-lg p-4 border-l-4 border-blue-600"><span class="text-sm text-gray-700" id="status-message">Ultimate crawler ready.</span></div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <div class="unified-data-section">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4"><i class="fas fa-database mr-2 text-purple-600"></i>Unified Dataset</h2>
+                        <div id="unified-stats" class="grid grid-cols-3 gap-4 text-center mb-4">
+                            <div><div class="text-2xl font-bold text-indigo-600" id="unified-unique-items">0</div><div class="text-xs text-indigo-600">Unique</div></div>
+                            <div><div class="text-2xl font-bold text-orange-600" id="unified-duplicates">0</div><div class="text-xs text-indigo-600">Duplicates</div></div>
+                             <div><div class="text-2xl font-bold text-green-600" id="unified-quality">0%</div><div class="text-xs text-indigo-600">Avg. Quality</div></div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button id="create-unified-dataset" class="btn-success flex-1 text-sm" disabled><i class="fas fa-layer-group mr-1"></i>Create Dataset</button>
+                            <button id="download-unified-json" class="btn-primary flex-1 text-sm" disabled><i class="fas fa-download mr-1"></i>JSON</button>
+                            <button id="download-unified-csv" class="btn-primary flex-1 text-sm" disabled><i class="fas fa-download mr-1"></i>CSV</button>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4"><i class="fas fa-sitemap mr-2 text-red-600"></i>Crawl Tree</h2>
+                        <div class="crawl-tree" id="crawl-tree"><div class="text-center text-gray-500 py-8"><p>Tree will appear here.</p></div></div>
+                    </div>
+                </div>
+                
+                <div id="pagination-status" class="pagination-indicator mb-6" style="display: none;"></div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-semibold text-gray-800"><i class="fas fa-list-alt mr-2 text-green-600"></i>Results Log</h2>
+                        <div class="flex items-center space-x-2">
+                            <button id="download-individual-json" class="btn-secondary text-sm" disabled><i class="fas fa-download mr-1"></i>Individual JSON</button>
+                        </div>
+                    </div>
+                    <div id="results-container" class="results-container space-y-4">
+                        <div class="text-center text-gray-500 py-12"><div class="animate-bounce-slow"><i class="fas fa-search text-6xl mb-4 text-gray-300"></i></div><p>Start crawling to see results.</p></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Guide Mode Modal -->
+    <div id="guide-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 p-4 lg:p-12">
+        <div class="bg-white w-full h-full rounded-lg shadow-2xl flex flex-col">
+            <div class="p-3 border-b flex justify-between items-center bg-gray-50 rounded-t-lg">
+                <h3 class="font-semibold text-gray-800"><i class="fas fa-magic mr-2 text-purple-600"></i>Guide Mode</h3>
+                <button id="close-guide-modal" class="text-gray-500 hover:text-red-600"><i class="fas fa-times-circle fa-lg"></i></button>
+            </div>
+            <div class="flex-grow relative">
+                <iframe id="guide-iframe"></iframe>
+                <div id="guide-popup">
+                    <h4 class="font-bold mb-2">Map Element</h4>
+                    <p class="text-xs bg-gray-100 p-1 rounded font-mono mb-3" id="guide-selector-preview"></p>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Assign to:</label>
+                    <select id="guide-mapping-select" class="form-select mb-3">
+                        <option value="css-selector">Main Content Selector</option>
+                        <option value="next-page-selector">Next Page Link</option>
+                        <option value="custom-title">Custom Title</option>
+                        <option value="custom-price">Custom Price</option>
+                    </select>
+                    <div class="flex space-x-2">
+                        <button id="guide-cancel-btn" class="btn-secondary flex-1 text-sm">Cancel</button>
+                        <button id="guide-apply-btn" class="btn-success flex-1 text-sm">Apply</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Crawl4AI Ultimate Pro - A comprehensive web scraping tool with a fortified evasion engine.
+         * Version: 13.1 (Robust Edition)
+         */
+        class Crawl4AIUltimatePro {
+            constructor() {
+                // --- Core State ---
+                this.isRunning = false;
+                this.isPaused = false;
+                this.abortController = null;
+                this.crawlStartTime = null;
+
+                // --- Data & Queues ---
+                this.currentResults = new Map(); // Use Map for easy updates
+                this.unifiedDataset = [];
+                this.crawlQueue = [];
+                this.aiQueue = [];
+                this.isAIQueueProcessing = false;
+                this.processedUrls = new Set();
+                this.crawlTree = new Map();
+
+                // --- Evasion & Proxy Engine ---
+                this.turndownService = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced' });
+                this.proxySources = []; // Removed default sources
+                this.staticWrappers = [
+                    { name: 'AllOrigins', url: 'https://api.allorigins.win/raw?url={URL}' },
+                    { name: 'ThingProxy', url: 'https://thingproxy.freeboard.io/fetch/{URL}' },
+                    { name: 'CORS-Anywhere', url: 'https://cors-anywhere.herokuapp.com/{URL}' },
+                    { name: 'CodeTabs', url: 'https://api.codetabs.com/v1/proxy?quest={URL}' },
+                    { name: 'CORS-Proxy.io', url: 'https://corsproxy.io/?{URL}' }
+                ];
+                this.proxies = new Map(); // Using a Map to store proxy objects with health data
+                this.userAgents = [];
+                this.domainTimers = new Map();
+                this.networkFailureCounter = 0; // Counts consecutive failures to trigger proxy re-test
+                this.proxyTestIntervalId = null;
+                this.robotsCache = new Map(); // Cache for robots.txt
+
+                // --- Statistics ---
+                this.stats = { discovered: 0, completed: 0, failed: 0, blocks: 0, requests: 0, maxDepth: 0 };
+                this.progressChart = null;
+                
+                // --- Guide Mode ---
+                this.guideModeActive = false;
+                this.guideTargetElement = null;
+
+                this.init();
+            }
+
+            // --- INITIALIZATION & SETUP ---
+
+            init() {
+                this.setupEventListeners();
+                this.setDefaultUserAgents();
+                this.switchTab('start');
+                this.initializeChart();
+                this.loadStaticProxies(); // Always load the reliable static wrappers
+            }
+
+            setupEventListeners() {
+                // Tabs
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab)));
+
+                // Startup Flow
+                document.querySelectorAll('input[name="start-method"]').forEach(radio => {
+                    radio.addEventListener('change', (e) => {
+                        document.getElementById('ai-discovery-inputs').style.display = e.target.value === 'ai' ? 'block' : 'none';
+                        document.getElementById('manual-url-inputs').style.display = e.target.value === 'manual' ? 'block' : 'none';
+                    });
+                });
+                document.getElementById('ai-search-btn').addEventListener('click', () => this.discoverUrlsWithAI());
+                document.getElementById('back-to-step-1').addEventListener('click', () => this.goToStep(1));
+                document.getElementById('confirm-selection-btn').addEventListener('click', () => this.confirmUrlSelection());
+                
+                // Toggles & Dynamic UI
+                document.getElementById('enable-deep-crawl').addEventListener('change', (e) => this.toggleSection('deep-crawl-options', e.target.checked));
+                document.getElementById('enable-pagination').addEventListener('change', (e) => this.toggleSection('pagination-options', e.target.checked));
+                document.getElementById('enable-ai-extraction').addEventListener('change', (e) => this.toggleSection('ai-options', e.target.checked));
+                document.getElementById('domain-strategy').addEventListener('change', (e) => this.toggleSection('domain-whitelist-container', e.target.value === 'whitelist'));
+                document.getElementById('pagination-strategy').addEventListener('change', (e) => this.toggleSection('custom-selector-options', e.target.value === 'custom-selector'));
+                document.getElementById('toggle-api-key').addEventListener('click', () => this.toggleApiKeyVisibility());
+
+                // Main Actions
+                document.getElementById('start-crawl').addEventListener('click', () => this.startCrawl());
+                document.getElementById('stop-crawl').addEventListener('click', () => this.stopCrawl());
+                document.getElementById('clear-results').addEventListener('click', () => this.clearResults());
+                document.getElementById('clear-all-btn').addEventListener('click', () => this.clearResults());
+                
+                // Proxy Actions
+                document.getElementById('add-custom-proxies-btn').addEventListener('click', () => this.addCustomProxies());
+                document.getElementById('test-proxies').addEventListener('click', () => this.runProxyHealthCheck());
+                document.getElementById('auto-test-interval').addEventListener('change', () => this.setupProxyAutoTest());
+
+                // Secondary Actions
+                document.getElementById('create-unified-dataset').addEventListener('click', () => this.createUnifiedDataset());
+                
+                // Downloads
+                document.getElementById('download-unified-json').addEventListener('click', () => this.downloadResults('json', 'unified'));
+                document.getElementById('download-unified-csv').addEventListener('click', () => this.downloadResults('csv', 'unified'));
+                document.getElementById('download-individual-json').addEventListener('click', () => this.downloadResults('json', 'individual'));
+
+                // Config Management
+                document.getElementById('save-config').addEventListener('click', () => this.saveConfig());
+                document.getElementById('load-config').addEventListener('click', () => document.getElementById('config-file-input').click());
+                const fileInput = document.createElement('input');
+                fileInput.type = 'file';
+                fileInput.id = 'config-file-input';
+                fileInput.style.display = 'none';
+                fileInput.accept = '.json';
+                fileInput.addEventListener('change', (e) => this.loadConfig(e));
+                document.body.appendChild(fileInput);
+
+                // Guide Mode
+                document.getElementById('close-guide-modal').addEventListener('click', () => this.closeGuideMode());
+                document.getElementById('guide-apply-btn').addEventListener('click', () => this.applyGuideSelection());
+                document.getElementById('guide-cancel-btn').addEventListener('click', () => this.closeGuidePopup());
+            }
+
+            setDefaultUserAgents() {
+                const defaultUAs = [
+                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+                    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:127.0) Gecko/20100101 Firefox/127.0',
+                    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+                    'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1'
+                ];
+                document.getElementById('user-agents').value = defaultUAs.join('\n');
+            }
+
+            initializeChart() {
+                const ctx = document.getElementById('progressChart').getContext('2d');
+                if (this.progressChart) this.progressChart.destroy();
+                this.progressChart = new Chart(ctx, {
+                    type: 'line',
+                    data: { labels: [], datasets: [
+                        { label: 'Success', data: [], borderColor: '#10B981', backgroundColor: 'rgba(16, 185, 129, 0.1)', tension: 0.2, fill: true },
+                        { label: 'Failed', data: [], borderColor: '#EF4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', tension: 0.2, fill: true },
+                        { label: 'Blocks', data: [], borderColor: '#F59E0B', backgroundColor: 'rgba(245, 158, 11, 0.1)', tension: 0.2, fill: true }
+                    ]},
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, stacked: true } } }
+                });
+            }
+
+            // --- STARTUP FLOW & AI DISCOVERY ---
+
+            goToStep(step) {
+                document.getElementById('start-step-1').classList.toggle('active', step === 1);
+                document.getElementById('start-step-2').classList.toggle('active', step === 2);
+            }
+
+            async discoverUrlsWithAI() {
+                const prompt = document.getElementById('ai-prompt').value.trim();
+                const apiKey = document.getElementById('ai-groq-api-key').value.trim();
+                const model = document.getElementById('ai-model').value;
+                const searchBtn = document.getElementById('ai-search-btn');
+                const checklistContainer = document.getElementById('ai-results-checklist');
+
+                if (!prompt) {
+                    return this.showMessage('Please enter a discovery prompt.', 'warning');
+                }
+                if (!apiKey) {
+                    return this.showMessage('Please enter your Groq API key.', 'warning');
+                }
+
+                searchBtn.disabled = true;
+                searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Searching...';
+                this.updateStatus(`AI is searching for URLs based on your prompt...`);
+                checklistContainer.innerHTML = ''; // Clear previous results
+
+                try {
+                    const systemPrompt = `You are an expert web researcher. Your task is to find URLs based on the user's request.
+                    You MUST respond with a JSON object. This JSON object must contain a single key called "urls", which is an array of strings.
+                    Each string in the array must be a valid, absolute URL.
+                    For example: {"urls": ["https://www.example.com/news", "https://www.anotherexample.org/blog"]}
+                    Do not include any other text, explanations, or markdown formatting in your response. Only the raw JSON object.`;
+
+                    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${apiKey}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            model: model,
+                            messages: [
+                                { role: 'system', content: systemPrompt },
+                                { role: 'user', content: prompt }
+                            ],
+                            response_format: { type: "json_object" } // Enforce JSON output
+                        })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({ error: { message: 'An unknown error occurred.' } }));
+                        throw new Error(errorData.error.message || `HTTP Error: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    const content = JSON.parse(result.choices[0].message.content);
+
+                    if (!content.urls || !Array.isArray(content.urls) || content.urls.length === 0) {
+                        throw new Error('AI did not return any URLs. Try rephrasing your prompt.');
+                    }
+
+                    content.urls.forEach((url, index) => {
+                        const checkboxId = `ai-url-${index}`;
+                        const checkboxHtml = `
+                            <label for="${checkboxId}" class="flex items-center p-2 border rounded-lg cursor-pointer hover:bg-gray-50">
+                                <input type="checkbox" id="${checkboxId}" value="${this.escapeHtml(url)}" class="mr-3 rounded" checked>
+                                <span class="text-sm font-mono">${this.escapeHtml(url)}</span>
+                            </label>
+                        `;
+                        checklistContainer.innerHTML += checkboxHtml;
+                    });
+
+                    this.showMessage(`AI found ${content.urls.length} URLs. Please review and confirm.`, 'success');
+                    this.goToStep(2);
+
+                } catch (error) {
+                    console.error('AI Discovery Error:', error);
+                    this.showMessage(`AI Discovery Failed: ${error.message}`, 'error');
+                } finally {
+                    searchBtn.disabled = false;
+                    searchBtn.innerHTML = 'Search';
+                    this.updateStatus('Ready.');
+                }
+            }
+
+            confirmUrlSelection() {
+                const checkedUrls = Array.from(document.querySelectorAll('#ai-results-checklist input:checked'))
+                    .map(input => input.value);
+
+                if (checkedUrls.length === 0) {
+                    return this.showMessage('Please select at least one URL to crawl.', 'warning');
+                }
+
+                const urlsInput = document.getElementById('urls-input');
+                const existingUrls = urlsInput.value.trim();
+                urlsInput.value = existingUrls + (existingUrls ? '\n' : '') + checkedUrls.join('\n');
+
+                this.showMessage(`${checkedUrls.length} URLs added to the starting list.`, 'success');
+                this.goToStep(1); // Go back to the main start view
+            }
+
+            // --- CRAWL LIFECYCLE ---
+
+            async startCrawl() {
+                if (this.isRunning) return;
+                const urls = document.getElementById('urls-input').value.split('\n').map(u => u.trim()).filter(u => u.startsWith('http'));
+                if (urls.length === 0) return this.showMessage('Please enter at least one valid URL.', 'error');
+                if (this.proxies.size === 0) return this.showMessage('Please add and test proxies before starting.', 'warning');
+                if (document.getElementById('enable-ai-extraction').checked && !document.getElementById('groq-api-key').value) return this.showMessage('AI extraction requires a Groq API key.', 'warning');
+
+                this.updateStatus('Running pre-flight proxy check...');
+                await this.runProxyHealthCheck();
+                if (this.selectProxy() === null) {
+                    return this.showMessage('Pre-flight check failed: No working proxies found.', 'error');
+                }
+
+                await this.initializeCrawlSession(urls);
+                try {
+                    await this.processCrawlQueue();
+                } catch (error) {
+                    if (error.name !== 'AbortError') console.error("Crawling failed:", error);
+                } finally {
+                    await this.finalizeCrawl();
+                }
+            }
+
+            async initializeCrawlSession(urls) {
+                this.isRunning = true;
+                this.isPaused = false;
+                this.abortController = new AbortController();
+                this.crawlStartTime = Date.now();
+                this.currentResults.clear();
+                this.unifiedDataset = [];
+                this.crawlQueue = urls.map(url => ({ url, depth: 0, parentUrl: null }));
+                this.aiQueue = [];
+                this.isAIQueueProcessing = false;
+                this.crawlTree.clear();
+                this.domainTimers.clear();
+                this.networkFailureCounter = 0;
+                this.userAgents = document.getElementById('user-agents').value.split('\n').filter(Boolean);
+                this.stats = { discovered: urls.length, completed: 0, failed: 0, blocks: 0, requests: 0, maxDepth: 0 };
+                this.robotsCache.clear();
+                
+                this.updateControls();
+                this.clearMessages();
+                this.setupProxyAutoTest();
+                document.getElementById('results-container').innerHTML = '';
+                this.updateStatus('Initializing crawl...');
+                urls.forEach(url => this.updateCrawlTree(url, null, 0, 'queued'));
+                this.renderCrawlTree();
+
+                // Initial discovery phase (Sitemaps, etc.)
+                if (document.getElementById('parse-sitemaps').checked) {
+                    await this.discoverFromSitemaps(urls);
+                }
+            }
+
+            async processCrawlQueue() {
+                const maxUrls = parseInt(document.getElementById('max-urls').value) || 50;
+                const concurrentRequests = parseInt(document.getElementById('concurrent-requests').value) || 3;
+                
+                while (this.isRunning && this.crawlQueue.length > 0 && this.processedUrls.size < maxUrls) {
+                    if(this.isPaused) {
+                        await this.sleep(1000);
+                        continue;
+                    }
+                    const batch = this.crawlQueue.splice(0, concurrentRequests);
+                    const promises = batch.map(item => this.processCrawlItem(item));
+                    await Promise.allSettled(promises);
+                }
+            }
+
+            async processCrawlItem(item) {
+                if (this.processedUrls.has(item.url) || !this.isRunning) return;
+                this.processedUrls.add(item.url);
+                this.updateCrawlTree(item.url, item.parentUrl, item.depth, 'processing');
+
+                let result;
+                let success = false;
+
+                // First Attempt
+                try {
+                    result = await this.performFetchAndParse(item);
+                    success = true;
+                } catch (error) {
+                    await this.handleCrawlError(error, item.url);
+
+                    // Immediate Second Attempt (Retry)
+                    this.updateStatus(`Immediate retry for ${this.truncateUrl(item.url)}...`);
+                    try {
+                        result = await this.performFetchAndParse(item);
+                        success = true;
+                    } catch (retryError) {
+                        await this.handleCrawlError(retryError, item.url);
+                        this.updateStatus(`Retry failed. Re-queuing ${this.truncateUrl(item.url)} to end of list.`);
+                        this.crawlQueue.push(item); // Put to the end of the queue
+                        result = { status: 'failed', error: retryError.message || `Failed after immediate retry.` };
+                    }
+                }
+
+                // Finalize processing for this item
+                if (success) {
+                    this.networkFailureCounter = 0; // Reset counter on success
+                    this.stats.completed++;
+                } else {
+                    this.stats.failed++;
+                }
+                
+                const finalResult = { ...item, ...result, timestamp: new Date().toISOString() };
+                this.currentResults.set(finalResult.url, finalResult);
+                this.updateCrawlTree(finalResult.url, finalResult.parentUrl, finalResult.depth, finalResult.status);
+                this.addResultCard(finalResult);
+                this.updateStatsUI();
+            }
+
+            async performFetchAndParse(item) {
+                await this.respectDomainDelay(item.url);
+                const { text, response, proxyUsed } = await this.fetchWithEvasion(item.url, item.parentUrl);
+                const result = await this.parseAndProcessContent(text, item);
+                result.proxyUsed = proxyUsed;
+                this.setDomainDelay(item.url);
+                return result;
+            }
+
+            async handleCrawlError(error, url) {
+                console.error(`Crawl Error on ${url}:`, error);
+                if (error.name === 'BlockError') {
+                    this.stats.blocks++;
+                    this.updateStatus(`Block (${error.status}) on ${this.truncateUrl(url)}.`);
+                } else {
+                    this.updateStatus(`Network error on ${this.truncateUrl(url)}.`);
+                }
+                
+                this.penalizeProxy(error.proxyKey);
+                this.networkFailureCounter++;
+
+                // After every 3rd failure, re-test all proxies to find a better route
+                if (this.networkFailureCounter > 0 && this.networkFailureCounter % 3 === 0) {
+                    this.showMessage('3 consecutive failures detected, re-testing all proxies...', 'warning');
+                    await this.runProxyHealthCheck();
+                }
+            }
+
+            stopCrawl() {
+                this.isRunning = false;
+                if (this.abortController) this.abortController.abort();
+                if (this.proxyTestIntervalId) clearInterval(this.proxyTestIntervalId);
+                this.updateStatus('Stopping crawl...');
+            }
+
+            async finalizeCrawl() {
+                if (this.isAIQueueProcessing || this.aiQueue.length > 0) {
+                    this.updateStatus(`Crawl queue empty. Finishing ${this.aiQueue.length} AI extractions...`);
+                    // Wait for the AI queue to finish
+                    while(this.isAIQueueProcessing || this.aiQueue.length > 0) {
+                        if(!this.isRunning && this.abortController.signal.aborted) break; // Allow stop to interrupt this
+                        await this.sleep(1000);
+                    }
+                }
+
+                this.isRunning = false;
+                if (this.proxyTestIntervalId) clearInterval(this.proxyTestIntervalId);
+                this.updateControls();
+                this.updateStatus(`Crawl finished in ${((Date.now() - this.crawlStartTime) / 1000).toFixed(2)}s.`);
+                this.showMessage('Crawl complete!', 'success');
+            }
+            
+            clearResults() {
+                if (this.isRunning) return;
+                this.currentResults.clear(); this.unifiedDataset = []; this.processedUrls.clear(); this.crawlQueue = []; this.crawlTree.clear();
+                this.initializeChart(); 
+                this.stats = { discovered: 0, completed: 0, failed: 0, blocks: 0, requests: 0, maxDepth: 0 }; 
+                this.updateStatsUI();
+                document.getElementById('results-container').innerHTML = '<div class="text-center text-gray-500 py-12"><div class="animate-bounce-slow"><i class="fas fa-search text-6xl mb-4 text-gray-300"></i></div><p>Results cleared.</p></div>';
+                document.getElementById('unified-unique-items').textContent = 0; 
+                document.getElementById('unified-duplicates').textContent = 0; 
+                document.getElementById('unified-quality').textContent = '0%';
+                this.renderCrawlTree();
+                this.showMessage('All results and stats have been cleared.', 'success');
+            }
+
+            // --- FETCHING & EVASION ---
+
+            async fetchWithEvasion(url, refererUrl) {
+                const concurrentAttempts = 3; // Make 3 attempts simultaneously
+                const promises = [];
+                const requestAbortController = new AbortController();
+
+                for(let i = 0; i < concurrentAttempts; i++) {
+                    promises.push(this.fetchAttempt(url, refererUrl, requestAbortController.signal));
+                }
+
+                try {
+                    const result = await Promise.any(promises);
+                    requestAbortController.abort(); // Cancel other attempts
+                    return result;
+                } catch (error) {
+                    requestAbortController.abort(); // Ensure all are cancelled
+                    throw error.errors[0]; // Throw the first error
+                }
+            }
+            
+            async fetchAttempt(url, refererUrl, signal) {
+                const proxyKey = this.selectProxy();
+                if (!proxyKey) throw new Error("No available proxies.");
+
+                try {
+                    const userAgent = this.userAgents[Math.floor(Math.random() * this.userAgents.length)];
+                    const headers = { 
+                        'User-Agent': userAgent,
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+                        'Accept-Language': 'en-US,en;q=0.9',
+                        'Accept-Encoding': 'gzip, deflate, br',
+                        'DNT': '1',
+                        'Upgrade-Insecure-Requests': '1',
+                        'Sec-Fetch-Dest': 'document',
+                        'Sec-Fetch-Mode': 'navigate',
+                        'Sec-Fetch-Site': refererUrl ? 'same-origin' : 'none',
+                        'Sec-Fetch-User': '?1',
+                        'Sec-CH-UA': '"Not/A)Brand";v="8", "Chromium";v="126"',
+                        'Sec-CH-UA-Mobile': '?0',
+                        'Sec-CH-UA-Platform': '"Windows"'
+                    };
+                    if (refererUrl) headers['Referer'] = refererUrl;
+                    
+                    const response = await this.fetchWithProxy(url, proxyKey, headers, signal);
+                    return {...response, proxyUsed: proxyKey};
+                } catch (error) {
+                    error.proxyKey = proxyKey; // Attach failing proxy to error
+                    throw error;
+                }
+            }
+            
+            async fetchWithProxy(url, proxyKey, headers, signal) {
+                this.stats.requests++;
+                let proxyInfo = this.proxies.get(proxyKey);
+                let fetchUrl = proxyInfo.url.replace('{URL}', encodeURIComponent(url));
+
+                const controller = new AbortController();
+                const timeout = parseInt(document.getElementById('timeout').value) * 1000;
+                const timeoutId = setTimeout(() => controller.abort(), timeout);
+                
+                // Combine signals
+                const combinedSignal = this.getCombinedSignal(signal, controller.signal, this.abortController.signal);
+
+                let response;
+                try {
+                    response = await fetch(fetchUrl, { 
+                        headers: headers, 
+                        signal: combinedSignal, 
+                        mode: 'cors' 
+                    });
+                } catch (e) {
+                    throw new Error(`Network Error: ${e.message}`);
+                } finally {
+                    clearTimeout(timeoutId);
+                }
+
+                if ([403, 429, 502, 503, 504].includes(response.status)) {
+                    const blockError = new Error(`BlockError: ${response.status}`);
+                    blockError.name = 'BlockError';
+                    blockError.status = response.status;
+                    const retryAfterHeader = response.headers.get('Retry-After');
+                    if (retryAfterHeader) {
+                        blockError.retryAfter = parseInt(retryAfterHeader, 10);
+                    }
+                    throw blockError;
+                }
+
+                if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+                const text = await response.text();
+                return { text, response };
+            }
+            
+            // --- PARSING & EXTRACTION ---
+
+            async parseAndProcessContent(html, item) {
+                const result = this.parseWebContent(html, item.url);
+                result.rawHtml = html; // Cache the raw HTML for guide mode
+                if (document.getElementById('enable-ai-extraction').checked) {
+                    this.aiQueue.push({ result, url: item.url });
+                    if (!this.isAIQueueProcessing) this.processAIQueue();
+                }
+                if (document.getElementById('enable-deep-crawl').checked && item.depth < parseInt(document.getElementById('max-depth').value)) {
+                    this.discoverLinks(result, item);
+                }
+                if(document.getElementById('discover-feeds').checked) {
+                    this.discoverFeeds(html, item.url);
+                }
+                if (document.getElementById('enable-pagination').checked) {
+                    this.discoverPagination(html, item);
+                }
+                return { ...result, status: 'success' };
+            }
+
+            async processAIQueue() {
+                if (!this.isRunning && this.aiQueue.length === 0) {
+                     this.isAIQueueProcessing = false;
+                     return;
+                }
+                if (this.aiQueue.length === 0) {
+                    this.isAIQueueProcessing = false;
+                    // If the main crawl is also done, finalize everything.
+                    if (!this.isRunning && this.crawlQueue.length === 0) {
+                        await this.finalizeCrawl();
+                    }
+                    return;
+                }
+
+                this.isAIQueueProcessing = true;
+                const { result, url } = this.aiQueue.shift();
+                
+                try {
+                    this.updateStatus(`AI extracting: ${this.truncateUrl(url)} (${this.aiQueue.length} left)`);
+                    result.aiExtracted = await this.performLLMExtraction(result.structuredData.mainContent);
+                } catch (aiError) {
+                    result.aiError = aiError.message;
+                }
+
+                // Update the master results array with the new AI data
+                const masterResult = this.currentResults.get(url);
+                if (masterResult) {
+                    masterResult.aiExtracted = result.aiExtracted;
+                    masterResult.aiError = result.aiError;
+                }
+
+                this.updateResultInUI(result);
+
+                const delay = parseInt(document.getElementById('ai-request-delay').value, 10);
+                await this.sleep(delay);
+                this.processAIQueue();
+            }
+
+            parseWebContent(html, url) {
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+                const mainContentEl = this.extractMainContent(doc.body.cloneNode(true)) || doc.body;
+                
+                const structuredData = this.extractStructuredData(doc, mainContentEl);
+                
+                const links = document.getElementById('extract-links').checked ? [...mainContentEl.querySelectorAll('a[href]')].map(a => { try { return { url: new URL(a.getAttribute('href'), url).href, text: a.textContent.trim() }; } catch (e) { return null; } }).filter(Boolean) : [];
+                const markdown = document.getElementById('extract-markdown').checked ? this.turndownService.turndown(mainContentEl) : '';
+                const media = document.getElementById('extract-media').checked ? [...mainContentEl.querySelectorAll('img[src], video[src], audio[src]')].map(el => { try { return new URL(el.src, url).href } catch(e){ return null }}).filter(Boolean) : [];
+                const quality = Math.min(100, Math.round((structuredData.mainContent.length / 2000) * 50 + (structuredData.title !== 'No Title' ? 20 : 0) + (Object.keys(structuredData.meta).length > 2 ? 15 : 0) + (links.length > 5 ? 15 : 0)));
+                const canonicalUrl = (() => { try { return new URL(doc.querySelector('link[rel="canonical"]')?.href, url).href } catch(e) { return url } })();
+                
+                return { url, structuredData, links, markdown, media, quality, canonicalUrl };
+            }
+
+            extractMainContent(body) {
+                const junkSelectors = 'nav, footer, header, aside, form, script, style, [class*="ad"], [id*="ad"], [class*="sidebar"], [class*="comment"], [class*="share"], [class*="promo"], [class*="popup"], [class*="cookie"]';
+                body.querySelectorAll(junkSelectors).forEach(el => el.remove());
+                
+                let topCandidate = null;
+                let topScore = -Infinity;
+
+                body.querySelectorAll('div, article, section, main').forEach(el => {
+                    const textLength = el.textContent.trim().length;
+                    if (textLength < 150) return;
+
+                    const pCount = el.querySelectorAll('p').length;
+                    const linkCount = el.querySelectorAll('a').length;
+                    const linkDensity = linkCount > 0 ? textLength / linkCount : textLength;
+                    
+                    let score = pCount * 1.5 + textLength * 0.1 - linkCount * 0.5;
+                    if (linkDensity < 10) score *= 0.1; // Penalize link-heavy sections
+
+                    if (el.matches('[class*="content"], [id*="content"], [class*="article"], [id*="article"], [class*="main"]')) score *= 1.5;
+                    
+                    if (score > topScore) {
+                        topScore = score;
+                        topCandidate = el;
+                    }
+                });
+                return topCandidate;
+            }
+            
+            extractStructuredData(doc, mainContentEl) {
+                const data = {
+                    title: doc.querySelector('title')?.textContent.trim() || 'No Title',
+                    author: null,
+                    publishDate: null,
+                    mainContent: (mainContentEl.innerText || '').replace(/\s\s+/g, ' ').trim(),
+                    meta: {}
+                };
+
+                // Meta tags
+                if (document.getElementById('extract-metadata').checked) {
+                    doc.querySelectorAll('meta[name], meta[property]').forEach(m => {
+                        const key = m.getAttribute('name') || m.getAttribute('property');
+                        const value = m.getAttribute('content');
+                        data.meta[key] = value;
+                        if (key.includes('author')) data.author = data.author || value;
+                        if (key.includes('date') || key.includes('time')) data.publishDate = data.publishDate || value;
+                    });
+                }
+                
+                // Fallbacks for author and date
+                data.author = data.author || doc.querySelector('[class*="author"], [class*="byline"]')?.textContent.trim();
+                const timeEl = doc.querySelector('time[datetime]');
+                if (timeEl) data.publishDate = data.publishDate || timeEl.getAttribute('datetime');
+
+                return data;
+            }
+
+            async performLLMExtraction(text) {
+                const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${document.getElementById('groq-api-key').value}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: document.getElementById('llm-model').value,
+                        messages: [{ role: 'system', content: document.getElementById('custom-prompt').value }, { role: 'user', content: text.substring(0, 7000) }]
+                    }),
+                    signal: this.abortController.signal
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error.message);
+                }
+                const result = await response.json();
+                return result.choices[0].message.content;
+            }
+
+            // --- DISCOVERY ---
+
+            async discoverFromSitemaps(startUrls) {
+                const uniqueDomains = [...new Set(startUrls.map(u => new URL(u).origin))];
+                this.updateStatus(`Parsing sitemaps for ${uniqueDomains.length} domains...`);
+                for (const domain of uniqueDomains) {
+                    try {
+                        const sitemapUrl = new URL('/sitemap.xml', domain).href;
+                        const { text } = await this.fetchWithEvasion(sitemapUrl, domain);
+                        const doc = new DOMParser().parseFromString(text, "application/xml");
+                        const urls = [...doc.querySelectorAll('loc')].map(loc => loc.textContent.trim());
+                        this.showMessage(`Found ${urls.length} URLs in sitemap for ${domain}`, 'success');
+                        urls.forEach(url => this.addUrlToQueue(url, 0, domain));
+                    } catch (e) {
+                        // It's common for sitemaps not to exist, so we don't show a big error.
+                        console.warn(`Could not fetch or parse sitemap for ${domain}:`, e.message);
+                    }
+                }
+            }
+
+            discoverFeeds(html, baseUrl) {
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+                const feedSelectors = 'link[type="application/rss+xml"], link[type="application/atom+xml"]';
+                doc.querySelectorAll(feedSelectors).forEach(link => {
+                    try {
+                        const feedUrl = new URL(link.href, baseUrl).href;
+                        this.showMessage(`Discovered feed: ${this.truncateUrl(feedUrl)}`, 'success');
+                        // In a real scenario, you'd parse this XML feed for links.
+                        // For this app, we'll just add the feed URL itself as a point of interest.
+                        this.addUrlToQueue(feedUrl, 1, baseUrl);
+                    } catch (e) {
+                        console.warn('Could not resolve feed URL:', e.message);
+                    }
+                });
+            }
+
+            discoverLinks(result, item) {
+                if (!document.getElementById('extract-links').checked) return;
+                result.links.forEach(link => {
+                    this.addUrlToQueue(link.url, item.depth + 1, item.url);
+                });
+            }
+
+            discoverPagination(html, item) {
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+                const maxPages = parseInt(document.getElementById('max-pages').value);
+                const strategy = document.getElementById('pagination-strategy').value;
+                const nextLinks = new Set();
+
+                let selectors = [];
+                if (strategy === 'auto' || strategy === 'next-link') {
+                    selectors.push('a[rel="next"]', 'a[class*="next"]', 'a[class*="pagination__next"]');
+                }
+                if (strategy === 'auto' || strategy === 'numbered') {
+                     doc.querySelectorAll('a').forEach(a => {
+                         if (/^\d+$/.test(a.textContent.trim()) || ['»', '›', '>'].includes(a.textContent.trim())) {
+                            try { nextLinks.add(new URL(a.href, item.url).href); } catch(e){}
+                         }
+                     });
+                }
+                if (strategy === 'custom-selector') {
+                    const customSelector = document.getElementById('next-page-selector').value;
+                    if (customSelector) selectors.push(customSelector);
+                }
+                
+                selectors.forEach(selector => {
+                    doc.querySelectorAll(selector).forEach(a => {
+                        try { nextLinks.add(new URL(a.href, item.url).href); } catch(e){}
+                    });
+                });
+
+                Array.from(nextLinks).slice(0, maxPages).forEach(url => {
+                     this.addUrlToQueue(url, item.depth, item.url); // Same depth for pagination
+                });
+            }
+            
+            addUrlToQueue(url, depth, parentUrl) {
+                if (this.shouldCrawlUrl(url, parentUrl)) {
+                    this.stats.discovered++;
+                    this.crawlQueue.push({ url, depth, parentUrl });
+                    this.updateCrawlTree(url, parentUrl, depth, 'queued');
+                }
+            }
+
+            async shouldCrawlUrl(url, parentUrl) {
+                try {
+                    const urlObj = new URL(url, parentUrl);
+                    if (urlObj.protocol !== 'http:' && urlObj.protocol !== 'https:') return false;
+                    const href = urlObj.href.split('#')[0]; // Ignore fragments
+                    if (this.processedUrls.has(href) || this.crawlQueue.some(i => i.url === href)) return false;
+                    
+                    // 1. Robots.txt check
+                    if (document.getElementById('respect-robots').checked) {
+                        const origin = urlObj.origin;
+                        if (!this.robotsCache.has(origin)) {
+                           await this.fetchAndParseRobotsTxt(origin);
+                        }
+                        const disallowed = this.robotsCache.get(origin);
+                        if (disallowed && disallowed.some(path => urlObj.pathname.startsWith(path))) {
+                            console.log(`Skipping ${href} due to robots.txt`);
+                            return false;
+                        }
+                    }
+
+                    // 2. Pattern matching
+                    const includePatterns = document.getElementById('include-patterns').value.split(',').map(p => p.trim()).filter(Boolean);
+                    const excludePatterns = document.getElementById('exclude-patterns').value.split(',').map(p => p.trim()).filter(Boolean);
+
+                    if (excludePatterns.length > 0 && this.matchesPatterns(href, excludePatterns)) {
+                        return false;
+                    }
+                    if (includePatterns.length > 0 && !this.matchesPatterns(href, includePatterns)) {
+                        return false;
+                    }
+
+                    // 3. Domain strategy
+                    const domainStrategy = document.getElementById('domain-strategy').value;
+                    if (domainStrategy === 'same-domain') {
+                        return urlObj.hostname === new URL(parentUrl).hostname;
+                    }
+                    if (domainStrategy === 'same-subdomain') {
+                        return urlObj.hostname.endsWith(new URL(parentUrl).hostname);
+                    }
+                    return true;
+                } catch (e) { return false; }
+            }
+
+            async fetchAndParseRobotsTxt(origin) {
+                this.updateStatus(`Fetching robots.txt for ${origin}`);
+                this.robotsCache.set(origin, []); // Assume allowed by default
+                try {
+                    const robotsUrl = new URL('/robots.txt', origin).href;
+                    const { text } = await this.fetchWithEvasion(robotsUrl, origin);
+                    const lines = text.split('\n');
+                    let userAgentMatch = false;
+                    const disallowedPaths = [];
+                    for (const line of lines) {
+                        if (line.toLowerCase().startsWith('user-agent:')) {
+                            userAgentMatch = line.split(':')[1].trim() === '*';
+                        }
+                        if (userAgentMatch && line.toLowerCase().startsWith('disallow:')) {
+                            const path = line.split(':')[1].trim();
+                            if (path) disallowedPaths.push(path);
+                        }
+                    }
+                    this.robotsCache.set(origin, disallowedPaths);
+                } catch (e) {
+                    console.warn(`Could not fetch robots.txt for ${origin}`);
+                    this.robotsCache.set(origin, []); // Cache failure so we don't retry
+                }
+            }
+
+            matchesPatterns(url, patterns) {
+                return patterns.some(pattern => {
+                    const regex = new RegExp(pattern.replace(/\*/g, '.*'));
+                    return regex.test(url);
+                });
+            }
+
+            // --- UI & DATA MANAGEMENT ---
+
+            createUnifiedDataset() {
+                const unique = new Map();
+                this.currentResults.forEach(r => { 
+                    if (r.status === 'success') {
+                        const existing = unique.get(r.canonicalUrl);
+                        if (existing) {
+                            // Merge, prioritizing keeping AI data if it exists
+                            existing.aiExtracted = existing.aiExtracted || r.aiExtracted;
+                            existing.aiError = existing.aiError || r.aiError;
+                        } else {
+                            unique.set(r.canonicalUrl, { ...r }); // Create a copy
+                        }
+                    }
+                });
+                this.unifiedDataset = Array.from(unique.values());
+                const quality = this.unifiedDataset.length > 0 ? Math.round(this.unifiedDataset.reduce((sum, r) => sum + r.quality, 0) / this.unifiedDataset.length) : 0;
+                document.getElementById('unified-unique-items').textContent = this.unifiedDataset.length;
+                document.getElementById('unified-duplicates').textContent = Array.from(this.currentResults.values()).filter(r=>r.status === 'success').length - this.unifiedDataset.length;
+                document.getElementById('unified-quality').textContent = `${quality}%`;
+                this.showMessage(`Unified dataset created with ${this.unifiedDataset.length} unique items.`, 'success');
+                document.getElementById('download-unified-json').disabled = false;
+                document.getElementById('download-unified-csv').disabled = false;
+            }
+
+            downloadResults(format, type) {
+                const data = type === 'unified' ? this.unifiedDataset : Array.from(this.currentResults.values());
+                if (data.length === 0) return this.showMessage('No data to download.', 'warning');
+                let content, filename, mimeType;
+                if (format === 'json') {
+                    content = JSON.stringify(data, null, 2);
+                    filename = `crawl4ai_${type}_results.json`;
+                    mimeType = 'application/json';
+                } else {
+                    const headers = ['url', 'title', 'author', 'publishDate', 'mainContent', 'status', 'depth', 'quality', 'error', 'aiExtracted', 'aiError'];
+                    const csvRows = [headers.join(',')];
+                    data.forEach(row => {
+                        const rowData = {
+                            url: row.url,
+                            title: row.structuredData?.title,
+                            author: row.structuredData?.author,
+                            publishDate: row.structuredData?.publishDate,
+                            mainContent: row.structuredData?.mainContent,
+                            status: row.status,
+                            depth: row.depth,
+                            quality: row.quality,
+                            error: row.error,
+                            aiExtracted: row.aiExtracted,
+                            aiError: row.aiError
+                        };
+                        csvRows.push(headers.map(h => this.csvEscape(rowData[h])).join(','))
+                    });
+                    content = csvRows.join('\n');
+                    filename = `crawl4ai_${type}_results.csv`;
+                    mimeType = 'text/csv';
+                }
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(new Blob([content], { type: mimeType }));
+                a.download = filename; a.click(); URL.revokeObjectURL(a.href);
+            }
+            
+            // --- UI UPDATE HELPERS ---
+
+            updateControls() {
+                const startBtn = document.getElementById('start-crawl');
+                startBtn.disabled = this.isRunning;
+                startBtn.querySelector('span').textContent = this.isRunning ? 'Crawling...' : 'Start Ultimate Crawling';
+                startBtn.querySelector('i').className = `fas ${this.isRunning ? 'fa-spinner fa-spin' : 'fa-play'} mr-2`;
+                document.getElementById('stop-crawl').disabled = !this.isRunning;
+            }
+
+            updateStatus(msg) { document.getElementById('status-message').textContent = this.truncateUrl(msg, 100); }
+            
+            updateStatsUI() {
+                document.getElementById('total-urls').textContent = this.stats.discovered;
+                document.getElementById('completed-urls').textContent = this.stats.completed;
+                document.getElementById('failed-urls').textContent = this.stats.failed;
+                document.getElementById('blocks-encountered').textContent = this.stats.blocks;
+                document.getElementById('current-depth').textContent = this.stats.maxDepth;
+                const elapsed = (Date.now() - this.crawlStartTime) / 60000;
+                document.getElementById('current-speed').textContent = elapsed > 0.01 ? Math.round(this.stats.requests / elapsed) : 0;
+                const progress = this.stats.discovered > 0 ? Math.round((this.processedUrls.size / this.stats.discovered) * 100) : 0;
+                document.getElementById('progress-bar').style.width = `${progress}%`;
+                this.updateChart(this.stats.completed, this.stats.failed, this.stats.blocks);
+            }
+
+            addResultCard(result) {
+                const container = document.getElementById('results-container');
+                if (container.querySelector('.text-center')) container.innerHTML = '';
+                
+                const card = document.createElement('div');
+                card.className = `crawl-card ${result.status} bg-white rounded-lg shadow p-4`;
+                card.dataset.url = result.url; // Add URL for later identification
+                
+                let contentHtml = `<div class="mt-3 message error"><strong>Error:</strong> ${this.escapeHtml(result.error)}</div>`;
+
+                if (result.status === 'success') {
+                    const qualityClass = result.quality > 75 ? 'quality-excellent' : result.quality > 50 ? 'quality-good' : 'quality-poor';
+                    const authorHtml = result.structuredData.author ? `<span class="text-gray-500"><i class="fas fa-user mr-1"></i> ${this.escapeHtml(result.structuredData.author)}</span>` : '';
+                    const dateHtml = result.structuredData.publishDate ? `<span class="text-gray-500"><i class="fas fa-calendar-alt mr-1"></i> ${this.escapeHtml(result.structuredData.publishDate)}</span>` : '';
+
+                    contentHtml = `
+                        <div class="mt-2 text-xs flex space-x-4">
+                           ${authorHtml} ${dateHtml}
+                        </div>
+                        <div class="mt-4 extraction-preview">${this.escapeHtml(result.structuredData.mainContent?.substring(0, 300))}...</div>
+                        <div class="ai-content-placeholder mt-2"></div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="font-semibold text-blue-700">${this.escapeHtml(result.structuredData?.title || result.title || 'Processing...')}</p>
+                            <a href="${result.url}" target="_blank" class="text-xs text-gray-500 hover:underline" title="${result.url}">${this.truncateUrl(result.url, 70)}</a>
+                        </div>
+                        <div class="flex items-center space-x-2 text-xs">
+                             <button class="guide-btn text-purple-500 hover:text-purple-700" data-url="${this.escapeHtml(result.url)}" title="Guide Scraper"><i class="fas fa-magic"></i></button>
+                            ${result.status === 'success' ? `<span class="data-quality-indicator ${result.quality > 75 ? 'quality-excellent' : result.quality > 50 ? 'quality-good' : 'quality-poor'}">${result.quality}%</span>` : ''}
+                            <span class="text-gray-400">D:${result.depth}</span>
+                        </div>
+                    </div>
+                    ${contentHtml}
+                `;
+                container.prepend(card);
+
+                card.querySelector('.guide-btn')?.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.openGuideMode(e.currentTarget.dataset.url);
+                });
+
+                document.getElementById('download-individual-json').disabled = false;
+                document.getElementById('create-unified-dataset').disabled = false;
+            }
+
+            updateResultInUI(result) {
+                const card = document.querySelector(`.crawl-card[data-url="${CSS.escape(result.url)}"]`);
+                if (!card) return;
+                const placeholder = card.querySelector('.ai-content-placeholder');
+                if (!placeholder) return;
+
+                if (result.aiExtracted) {
+                    placeholder.innerHTML = `<div class="p-2 bg-purple-50 border border-purple-200 rounded text-xs"><h5 class="font-bold mb-1 text-purple-800">AI Extraction</h5>${this.escapeHtml(result.aiExtracted)}</div>`;
+                } else if (result.aiError) {
+                    placeholder.innerHTML = `<div class="p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700"><strong>AI Error:</strong> ${this.escapeHtml(result.aiError)}</div>`;
+                }
+            }
+
+            updateCrawlTree(url, parent, depth, status) {
+                if (!this.crawlTree.has(url)) {
+                    this.crawlTree.set(url, { parent, depth, status, children: new Set() });
+                    if (parent && this.crawlTree.has(parent)) this.crawlTree.get(parent).children.add(url);
+                } else { this.crawlTree.get(url).status = status; }
+                this.stats.maxDepth = Math.max(this.stats.maxDepth, depth);
+                this.renderCrawlTree();
+            }
+
+            renderCrawlTree() {
+                const container = document.getElementById('crawl-tree');
+                let html = '';
+                this.crawlTree.forEach((node, url) => {
+                    if (!node.parent) html += this.renderTreeNode(url, 0);
+                });
+                container.innerHTML = html || '<div class="text-center text-gray-500 py-8"><p>Tree will appear here.</p></div>';
+            }
+
+            renderTreeNode(url, depth) {
+                const node = this.crawlTree.get(url);
+                const statusIcons = { queued: '...', processing: '⚙️', success: '✅', failed: '❌', blocked: '🚫' };
+                let html = `<div class="tree-node" style="--depth: ${depth * 1.5}rem">${'&nbsp;'.repeat(depth*2)}${statusIcons[node.status] || '❓'} ${this.truncateUrl(url, 50-depth*2)}</div>`;
+                node.children.forEach(childUrl => html += this.renderTreeNode(childUrl, depth + 1));
+                return html;
+            }
+
+            updateChart(s, f, b) {
+                const label = new Date().toLocaleTimeString();
+                this.progressChart.data.labels.push(label);
+                this.progressChart.data.datasets[0].data.push(s);
+                this.progressChart.data.datasets[1].data.push(f);
+                this.progressChart.data.datasets[2].data.push(b);
+                if (this.progressChart.data.labels.length > 30) {
+                    this.progressChart.data.labels.shift();
+                    this.progressChart.data.datasets.forEach(ds => ds.data.shift());
+                }
+                this.progressChart.update();
+            }
+
+            // --- PROXY INTELLIGENCE ENGINE ---
+            
+            loadStaticProxies() {
+                 this.staticWrappers.forEach((p, i) => {
+                     const proxyKey = `static_${i}`;
+                     this.proxies.set(proxyKey, {
+                         url: p.url,
+                         name: p.name,
+                         status: 'inactive', latency: Infinity, score: 20 // Give static proxies a higher initial score
+                     });
+                 });
+                 this.renderProxyListTable();
+            }
+            
+            async addCustomProxies() {
+                const customUrl = document.getElementById('custom-proxy-url').value.trim();
+                const quantity = parseInt(document.getElementById('proxy-quantity-selector').value);
+                if (!customUrl) {
+                    return this.showMessage('Please enter a custom proxy list URL.', 'warning');
+                }
+
+                this.updateStatus('Fetching and testing custom proxies...');
+                this.showMessage('Fetching custom proxies...', 'warning');
+
+                try {
+                    const responseText = await this.fetchProxyList(customUrl);
+                    const parsedProxies = this.parseProxyList(responseText, 'custom');
+                    
+                    if (parsedProxies.length === 0) {
+                        return this.showMessage('No proxies found at the specified URL.', 'error');
+                    }
+
+                    this.updateStatus(`Found ${parsedProxies.length} proxies. Testing...`);
+                    const testPromises = parsedProxies.map(proxy => this.testSingleProxy(proxy.key, true));
+                    const results = await Promise.allSettled(testPromises);
+
+                    const successfulProxies = results
+                        .filter(r => r.status === 'fulfilled' && r.value.status === 'active')
+                        .map(r => r.value)
+                        .sort((a, b) => a.latency - b.latency);
+
+                    const bestProxies = successfulProxies.slice(0, quantity);
+
+                    if (bestProxies.length === 0) {
+                        return this.showMessage('All custom proxies failed the health check.', 'error');
+                    }
+
+                    bestProxies.forEach(proxy => {
+                        this.proxies.set(proxy.key, proxy);
+                    });
+
+                    this.renderProxyListTable();
+                    this.showMessage(`Successfully added ${bestProxies.length} of the best custom proxies.`, 'success');
+
+                } catch (e) {
+                    this.showMessage(`Failed to fetch custom proxies: ${e.message}`, 'error');
+                } finally {
+                    this.updateStatus('Ready.');
+                }
+            }
+
+            async fetchProxyList(url) {
+                // Use one of our reliable static wrappers to fetch the proxy list itself, making the process more robust.
+                const wrapper = this.staticWrappers[0].url;
+                const fetchUrl = wrapper.replace('{URL}', encodeURIComponent(url));
+                const response = await fetch(fetchUrl);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const text = await response.text();
+                // Basic check to see if we got HTML (error page) instead of an API response
+                if (text.trim().toLowerCase().startsWith('<!doctype html')) {
+                    throw new Error("Received an HTML page, not a proxy list.");
+                }
+                return text;
+            }
+
+            parseProxyList(responseText, sourceName) {
+                const proxies = [];
+                try {
+                    // Try parsing as JSON first
+                    const data = JSON.parse(responseText);
+                    let proxiesFound = [];
+                    if (data.proxies) { // Handle proxyscrape format
+                         proxiesFound = data.proxies.map(p => `${p.protocol}://${p.proxy}`);
+                    } else if (Array.isArray(data)) { // Handle other potential JSON array formats
+                        proxiesFound = data.map(p => (p.proxy ? `${p.protocol || 'http'}://${p.proxy}`: `http://${p}`));
+                    }
+                    proxiesFound.forEach((p, i) => {
+                        const proxyKey = `${sourceName}_${i}`;
+                        proxies.push({ key: proxyKey, url: p.includes('://') ? p : `http://${p}`, name: proxyKey, status: 'inactive', latency: Infinity, score: 10 });
+                    });
+                } catch(e) {
+                    // If JSON parsing fails, assume it's a text list (e.g. ip:port)
+                    const lines = responseText.split('\n').filter(Boolean);
+                    lines.forEach((line, i) => {
+                        const proxyKey = `${sourceName}_${i}`;
+                        proxies.push({ key: proxyKey, url: `http://${line.trim()}`, name: proxyKey, status: 'inactive', latency: Infinity, score: 10 });
+                    });
+                }
+                return proxies;
+            }
+
+            async runProxyHealthCheck() {
+                const proxiesToTest = Array.from(this.proxies.keys());
+                if (proxiesToTest.length === 0) {
+                    this.showMessage('No proxies to test. Add a custom list first.', 'warning');
+                    return;
+                }
+                
+                this.updateStatus(`Testing ${proxiesToTest.length} proxies...`);
+                const progressBar = document.getElementById('proxy-test-progress-bar');
+                const progressContainer = document.getElementById('proxy-test-progress-container');
+                progressContainer.style.display = 'block';
+                progressBar.style.width = '0%';
+
+                let testedCount = 0;
+                const testPromises = proxiesToTest.map(proxyKey => 
+                    this.testSingleProxy(proxyKey).finally(() => {
+                        testedCount++;
+                        progressBar.style.width = `${(testedCount / proxiesToTest.length) * 100}%`;
+                    })
+                );
+
+                await Promise.allSettled(testPromises);
+                
+                this.updateStatus('Proxy health check complete.');
+                this.showMessage('Proxy health check complete.', 'success');
+                setTimeout(() => { progressContainer.style.display = 'none'; }, 2000);
+            }
+
+            async testSingleProxy(proxyKey, isNew = false) {
+                const proxy = isNew ? proxyKey : this.proxies.get(proxyKey);
+                proxy.status = 'testing';
+                if (!isNew) this.renderProxyListTable();
+
+                const testUrl = 'https://httpbin.org/get';
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout for testing
+                const startTime = Date.now();
+
+                try {
+                    // Use a reliable wrapper to test the proxy
+                    const fetchUrl = this.staticWrappers[0].url.replace('{URL}', encodeURIComponent(proxy.url.replace('{URL}', testUrl)));
+                    const response = await fetch(fetchUrl, { signal: controller.signal });
+                    
+                    if (response.ok) {
+                        proxy.latency = Date.now() - startTime;
+                        proxy.status = 'active';
+                        proxy.score = Math.max(1, 100 - Math.floor(proxy.latency / 100)); // Score based on speed
+                    } else {
+                        throw new Error('Test failed');
+                    }
+                } catch (e) {
+                    proxy.latency = Infinity;
+                    proxy.status = 'failed';
+                    proxy.score = 0;
+                } finally {
+                    clearTimeout(timeoutId);
+                    if (!isNew) this.renderProxyListTable();
+                }
+                return proxy;
+            }
+
+            renderProxyListTable() {
+                const tableBody = document.getElementById('proxy-list-table');
+                tableBody.innerHTML = '';
+                if (this.proxies.size === 0) {
+                     tableBody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-gray-500">No proxies loaded.</td></tr>';
+                     return;
+                }
+
+                const sortedProxies = [...this.proxies.entries()].sort((a, b) => a[1].latency - b[1].latency);
+
+                for (const [key, proxy] of sortedProxies) {
+                    const row = document.createElement('tr');
+                    row.className = `border-b ${proxy.status === 'failed' ? 'opacity-50' : ''}`;
+                    row.innerHTML = `
+                        <td class="py-1 font-mono">${this.truncateUrl(proxy.name, 25)}</td>
+                        <td><span class="px-2 py-1 text-xs rounded-full ${proxy.status === 'active' ? 'bg-green-100 text-green-800' : proxy.status === 'failed' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}">${proxy.status}</span></td>
+                        <td>${proxy.latency === Infinity ? 'N/A' : `${proxy.latency}ms`}</td>
+                    `;
+                    tableBody.appendChild(row);
+                }
+            }
+            
+            selectProxy() {
+                const healthyProxies = [...this.proxies.entries()].filter(([key, proxy]) => 
+                    proxy.status === 'active'
+                );
+
+                if (healthyProxies.length === 0) return null;
+
+                // Weighted random selection based on score
+                const totalScore = healthyProxies.reduce((sum, [, p]) => sum + p.score, 0);
+                if (totalScore === 0) return healthyProxies[0][0]; // Fallback if all scores are 0
+                
+                let random = Math.random() * totalScore;
+                
+                for (const [key, proxy] of healthyProxies) {
+                    random -= proxy.score;
+                    if (random <= 0) return key;
+                }
+
+                return healthyProxies[0][0]; // Fallback
+            }
+
+            penalizeProxy(proxyKey) {
+                if (!proxyKey || !this.proxies.has(proxyKey)) return;
+                const proxy = this.proxies.get(proxyKey);
+                proxy.score = 0; // Penalize heavily
+                proxy.status = 'failed';
+                this.renderProxyListTable();
+            }
+            
+            setupProxyAutoTest() {
+                if (this.proxyTestIntervalId) clearInterval(this.proxyTestIntervalId);
+                const intervalSeconds = parseInt(document.getElementById('auto-test-interval').value, 10);
+                if (intervalSeconds > 0) {
+                    this.proxyTestIntervalId = setInterval(() => {
+                        if (!this.isRunning || this.isPaused) return;
+                        this.showMessage(`Auto-testing ${this.proxies.size} proxies...`, 'warning');
+                        this.runProxyHealthCheck();
+                    }, intervalSeconds * 1000);
+                }
+            }
+            
+            // --- UTILITY METHODS ---
+
+            getCombinedSignal(...signals) {
+                const controller = new AbortController();
+                for (const signal of signals.filter(Boolean)) {
+                    if (signal.aborted) {
+                        controller.abort();
+                        return controller.signal;
+                    }
+                    signal.addEventListener('abort', () => controller.abort());
+                }
+                return controller.signal;
+            }
+
+            async respectDomainDelay(urlString) {
+                const hostname = new URL(urlString).hostname;
+                const domainTimer = this.domainTimers.get(hostname);
+                if (domainTimer) {
+                    const elapsed = Date.now() - domainTimer.lastRequest;
+                    const requiredDelay = domainTimer.delay;
+                    if (elapsed < requiredDelay) {
+                        await this.sleep(requiredDelay - elapsed);
+                    }
+                }
+            }
+
+            setDomainDelay(urlString) {
+                const hostname = new URL(urlString).hostname;
+                const baseDelay = parseFloat(document.getElementById('request-delay').value) * 1000;
+                const jitter = parseFloat(document.getElementById('delay-jitter').value) * 1000;
+                this.domainTimers.set(hostname, {
+                    lastRequest: Date.now(),
+                    delay: baseDelay + Math.random() * jitter
+                });
+            }
+
+            getExponentialBackoff(attempt) {
+                const baseCooldown = 1000; // Start with 1 second
+                const jitter = 500;
+                return (baseCooldown * Math.pow(2, attempt)) + (Math.random() * jitter);
+            }
+            
+            switchTab(tabName) {
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    const isActive = btn.dataset.tab === tabName;
+                    btn.classList.toggle('border-blue-600', isActive);
+                    btn.classList.toggle('text-blue-600', isActive);
+                    btn.classList.toggle('border-transparent', !isActive);
+                    btn.classList.toggle('text-gray-500', !isActive);
+                });
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.toggle('active', content.id === `${tabName}-tab`));
+            }
+
+            toggleSection(elementId, show) { document.getElementById(elementId).style.display = show ? 'block' : 'none'; }
+            
+            toggleApiKeyVisibility() {
+                const input = document.getElementById('groq-api-key');
+                input.type = input.type === 'password' ? 'text' : 'password';
+                input.nextElementSibling.querySelector('i').className = `fas fa-eye${input.type === 'password' ? '-slash' : ''}`;
+            }
+
+            showMessage(message, type) {
+                const container = document.getElementById('message-container');
+                const div = document.createElement('div');
+                div.className = `message ${type} flex justify-between items-center`;
+                div.innerHTML = `<span>${message}</span><button class="font-bold" onclick="this.parentElement.remove()">&times;</button>`;
+                container.appendChild(div);
+                setTimeout(() => div.remove(), 5000);
+            }
+
+            clearMessages() { document.getElementById('message-container').innerHTML = ''; }
+            sleep(ms) { return new Promise(resolve => this.isRunning ? setTimeout(resolve, ms) : null); }
+            truncateUrl(url, len = 60) { return url.length > len ? url.slice(0, len) + '...' : url; }
+            escapeHtml(unsafe) { return unsafe?.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") || ''; }
+            csvEscape(str) {
+                if (str === null || str === undefined) return '';
+                str = String(str);
+                if (str.includes(',') || str.includes('"') || str.includes('\n')) return `"${str.replace(/"/g, '""')}"`;
+                return str;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new Crawl4AIUltimatePro();
+        });
+    </script>
+</body>
+</html>

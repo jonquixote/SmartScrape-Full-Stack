@@ -48,6 +48,27 @@ class Crawl4AIApp {
         document.getElementById('create-session-btn').addEventListener('click', () => this.createSession());
         document.getElementById('test-all-proxies-btn').addEventListener('click', () => this.testAllProxies());
         document.getElementById('add-proxies-btn').addEventListener('click', () => this.showAddProxiesModal());
+        
+        // AI discovery URL selection
+        document.getElementById('select-all-urls').addEventListener('click', () => this.selectAllUrls(true));
+        document.getElementById('deselect-all-urls').addEventListener('click', () => this.selectAllUrls(false));
+        
+        // Deep crawl and pagination toggles
+        document.getElementById('enable-deep-crawl').addEventListener('change', (e) => {
+            document.getElementById('deep-crawl-options').classList.toggle('hidden', !e.target.checked);
+        });
+        
+        document.getElementById('enable-pagination').addEventListener('change', (e) => {
+            document.getElementById('pagination-options').classList.toggle('hidden', !e.target.checked);
+        });
+        
+        document.getElementById('domain-strategy').addEventListener('change', (e) => {
+            document.getElementById('domain-whitelist-container').classList.toggle('hidden', e.target.value !== 'whitelist');
+        });
+        
+        document.getElementById('pagination-strategy').addEventListener('change', (e) => {
+            document.getElementById('custom-selector-options').classList.toggle('hidden', e.target.value !== 'custom-selector');
+        });
     }
 
     async checkApiConnection() {
@@ -392,13 +413,9 @@ class Crawl4AIApp {
                 return;
             }
 
-            // Show discovered URLs in manual URLs textarea
-            document.getElementById('manual-urls').value = urls.join('\n');
-            document.querySelector('input[name="start-method"][value="manual"]').checked = true;
-            document.getElementById('ai-inputs').style.display = 'none';
-            document.getElementById('manual-inputs').style.display = 'block';
-
-            this.showMessage(`AI discovered ${urls.length} URLs! Review them below and create your session.`, 'success');
+            // Show discovered URLs as checkable list
+            this.showDiscoveredUrls(urls);
+            this.showMessage(`AI discovered ${urls.length} URLs! Select which ones to crawl.`, 'success');
 
         } catch (error) {
             console.error('URL discovery error:', error);
@@ -409,26 +426,125 @@ class Crawl4AIApp {
         }
     }
 
+    showDiscoveredUrls(urls) {
+        const container = document.getElementById('discovered-urls-list');
+        const aiResultsDiv = document.getElementById('ai-results');
+        
+        // Show AI results section
+        aiResultsDiv.classList.remove('hidden');
+        
+        // Generate checkboxes for each URL (only auto-select first one)
+        container.innerHTML = urls.map((url, index) => `
+            <label class="flex items-start space-x-3 p-2 border rounded hover:bg-gray-50 cursor-pointer">
+                <input type="checkbox" class="discovered-url-checkbox mt-1" value="${this.escapeHtml(url)}" ${index === 0 ? 'checked' : ''}>
+                <div class="flex-1">
+                    <div class="text-sm font-medium text-gray-900 break-all">${this.escapeHtml(url)}</div>
+                    <div class="text-xs text-gray-500">Click to toggle selection</div>
+                </div>
+            </label>
+        `).join('');
+    }
+
+    selectAllUrls(select) {
+        const checkboxes = document.querySelectorAll('.discovered-url-checkbox');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = select;
+        });
+    }
+
+    getSelectedUrls() {
+        const checkboxes = document.querySelectorAll('.discovered-url-checkbox:checked');
+        return Array.from(checkboxes).map(checkbox => checkbox.value);
+    }
+
+    generateSessionTitle(startMethod) {
+        if (startMethod === 'ai') {
+            const prompt = document.getElementById('ai-prompt').value.trim();
+            if (prompt) {
+                // Clean up the prompt and make it a title
+                return prompt.charAt(0).toUpperCase() + prompt.slice(1).replace(/[.!?]+$/, '');
+            }
+            return 'AI Discovery Session';
+        } else {
+            // For manual method, try to extract domain names
+            const urlsText = document.getElementById('manual-urls').value.trim();
+            const selectedUrls = this.getSelectedUrls();
+            
+            const urls = selectedUrls.length > 0 ? selectedUrls : 
+                         urlsText.split('\n').map(url => url.trim()).filter(url => url.length > 0);
+            
+            if (urls.length > 0) {
+                try {
+                    const domains = urls.map(url => {
+                        const urlObj = new URL(url.startsWith('http') ? url : 'https://' + url);
+                        return urlObj.hostname.replace('www.', '');
+                    });
+                    const uniqueDomains = [...new Set(domains)];
+                    
+                    if (uniqueDomains.length === 1) {
+                        return `Crawl ${uniqueDomains[0]}`;
+                    } else if (uniqueDomains.length <= 3) {
+                        return `Crawl ${uniqueDomains.join(', ')}`;
+                    } else {
+                        return `Crawl ${uniqueDomains.length} websites`;
+                    }
+                } catch (e) {
+                    return `Manual Crawl Session`;
+                }
+            }
+            return 'Manual Crawl Session';
+        }
+    }
+
     async createSession() {
-        const title = document.getElementById('session-title').value.trim();
+        let title = document.getElementById('session-title').value.trim();
         const description = document.getElementById('session-description').value.trim();
         const startMethod = document.querySelector('input[name="start-method"]:checked').value;
         
+        // Auto-generate title if not provided
         if (!title) {
-            this.showMessage('Please enter a session title', 'warning');
-            return;
+            title = this.generateSessionTitle(startMethod);
+            document.getElementById('session-title').value = title;
         }
 
         const sessionData = {
             title,
             description: description || undefined,
             start_method: startMethod,
+            crawl_strategy: document.getElementById('crawl-strategy').value,
+            
+            // Deep crawl options
+            enable_deep_crawl: document.getElementById('enable-deep-crawl').checked,
+            max_depth: parseInt(document.getElementById('max-depth').value) || 3,
+            max_urls: parseInt(document.getElementById('max-urls').value) || 50,
+            domain_strategy: document.getElementById('domain-strategy').value,
+            domain_whitelist: document.getElementById('domain-whitelist').value ? 
+                document.getElementById('domain-whitelist').value.split(',').map(d => d.trim()) : null,
+            respect_robots: document.getElementById('respect-robots').checked,
+            parse_sitemaps: document.getElementById('parse-sitemaps').checked,
+            discover_feeds: document.getElementById('discover-feeds').checked,
+            include_patterns: document.getElementById('include-patterns').value || null,
+            exclude_patterns: document.getElementById('exclude-patterns').value || null,
+            
+            // Pagination options
+            enable_pagination: document.getElementById('enable-pagination').checked,
+            pagination_strategy: document.getElementById('pagination-strategy').value,
+            pagination_selector: document.getElementById('next-page-selector').value || null,
+            max_pages: parseInt(document.getElementById('max-pages').value) || 10,
+            page_delay: parseInt(document.getElementById('page-delay').value) || 2,
+            deduplicate_paginated: document.getElementById('deduplicate-paginated').checked,
+            
+            // Output options
             generate_markdown: document.getElementById('generate-markdown').checked,
             extract_metadata: document.getElementById('extract-metadata').checked,
             extract_links: document.getElementById('extract-links').checked,
+            extract_media: document.getElementById('extract-media').checked,
+            
+            // Content processing
             smart_cleaning: document.getElementById('smart-cleaning').checked,
             remove_ads: document.getElementById('remove-ads').checked,
-            enable_deep_crawl: document.getElementById('enable-deep-crawl').checked
+            remove_navigation: document.getElementById('remove-navigation').checked,
+            enable_ai_extraction: document.getElementById('enable-ai-extraction').checked
         };
 
         if (startMethod === 'ai') {
@@ -438,6 +554,13 @@ class Crawl4AIApp {
             if (!sessionData.ai_prompt) {
                 this.showMessage('Please enter an AI discovery prompt', 'warning');
                 return;
+            }
+            
+            // Check if URLs have been discovered and selected
+            const selectedUrls = this.getSelectedUrls();
+            if (selectedUrls.length > 0) {
+                sessionData.urls = selectedUrls;
+                sessionData.start_method = 'manual'; // Change to manual since we have specific URLs
             }
         } else {
             const urlsText = document.getElementById('manual-urls').value.trim();

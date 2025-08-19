@@ -253,29 +253,24 @@ export class CrawlerEngine {
     const result: Partial<CrawlResult> = { url, html };
 
     try {
-      // Extract title using regex
-      const titleMatch = html.match(/<title[^>]*>([^<]*)<\/title>/i);
-      result.title = titleMatch ? titleMatch[1].trim() : '';
-
-      // Extract metadata using regex
-      result.metadata = this.extractMetadataRegex(html);
-
-      // Extract links if requested
+      // Use HTMLRewriter for robust HTML parsing
+      const extractedData = await this.extractWithHTMLRewriter(html, url, options);
+      
+      result.title = extractedData.title;
+      result.metadata = extractedData.metadata;
+      
       if (options.extractLinks || this.session.extract_links) {
-        result.links = this.extractLinksRegex(html, url);
+        result.links = extractedData.links;
       }
-
-      // Extract media if requested
+      
       if (options.extractMedia || this.session.extract_media) {
-        result.media = this.extractMediaRegex(html, url);
+        result.media = extractedData.media;
       }
-
-      // Extract main text content
-      result.text = this.extractMainContentRegex(html);
-
-      // Generate markdown if requested
+      
+      result.text = extractedData.text;
+      
       if (options.generateMarkdown || this.session.generate_markdown) {
-        result.markdown = this.convertToMarkdownRegex(html, result.title || '');
+        result.markdown = extractedData.markdown;
       }
 
     } catch (error) {
@@ -287,176 +282,167 @@ export class CrawlerEngine {
     return result;
   }
 
-  private extractMetadataRegex(html: string): Record<string, any> {
+  private async extractWithHTMLRewriter(html: string, baseUrl: string, options: CrawlOptions = {}): Promise<{
+    title: string;
+    metadata: Record<string, any>;
+    links: string[];
+    media: string[];
+    text: string;
+    markdown: string;
+  }> {
+    let title = '';
     const metadata: Record<string, any> = {};
-
-    // Extract meta tags using regex
-    const metaTagRegex = /<meta\s+([^>]*?)>/gi;
-    let match;
+    const links = new Set<string>();
+    const media = new Set<string>();
+    const textContent: string[] = [];
+    const markdownParts: string[] = [];
+    let currentHeading = '';
     
-    while ((match = metaTagRegex.exec(html)) !== null) {
-      const attrs = match[1];
-      const nameMatch = attrs.match(/(?:name|property|http-equiv)=["']([^"']+)["']/i);
-      const contentMatch = attrs.match(/content=["']([^"']+)["']/i);
+    const response = new Response(html, {
+      headers: { 'Content-Type': 'text/html' }
+    });
+    
+    const rewriter = new HTMLRewriter()
+      // Extract title
+      .on('title', {
+        text(text) {
+          title += text.text;
+        }
+      })
       
-      if (nameMatch && contentMatch) {
-        metadata[nameMatch[1]] = contentMatch[1];
-      }
-    }
-
-    // Extract JSON-LD structured data
-    const jsonLdRegex = /<script[^>]*type=["']application\/ld\+json["'][^>]*>(.*?)<\/script>/gis;
-    const structuredData: any[] = [];
-    
-    while ((match = jsonLdRegex.exec(html)) !== null) {
-      try {
-        const data = JSON.parse(match[1]);
-        structuredData.push(data);
-      } catch (e) {
-        // Ignore invalid JSON-LD
-      }
-    }
-    
-    if (structuredData.length > 0) {
-      metadata['structuredData'] = structuredData;
-    }
-
-    return metadata;
-  }
-
-  private extractLinksRegex(html: string, baseUrl: string): string[] {
-    const links: Set<string> = new Set();
-    const linkRegex = /<a\s+[^>]*href=["']([^"']+)["'][^>]*>/gi;
-    let match;
-    
-    while ((match = linkRegex.exec(html)) !== null) {
-      const href = match[1];
-      if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
-        try {
-          const absoluteUrl = new URL(href, baseUrl).toString();
-          if (absoluteUrl.startsWith('http://') || absoluteUrl.startsWith('https://')) {
-            links.add(absoluteUrl);
+      // Extract metadata from meta tags
+      .on('meta', {
+        element(element) {
+          const name = element.getAttribute('name') || 
+                      element.getAttribute('property') || 
+                      element.getAttribute('http-equiv');
+          const content = element.getAttribute('content');
+          
+          if (name && content) {
+            metadata[name] = content;
           }
-        } catch (e) {
-          // Ignore invalid URLs
         }
-      }
-    }
-
-    return Array.from(links);
+      })
+      
+      // Extract JSON-LD structured data
+      .on('script[type="application/ld+json"]', {
+        text(text) {
+          try {
+            const data = JSON.parse(text.text);
+            if (!metadata.structuredData) {
+              metadata.structuredData = [];
+            }
+            metadata.structuredData.push(data);
+          } catch (e) {
+            // Ignore invalid JSON-LD
+          }
+        }
+      })
+      
+      // Extract links
+      .on('a[href]', {
+        element(element) {
+          if (options.extractLinks || this.session.extract_links) {
+            const href = element.getAttribute('href');
+            if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
+              try {
+                const absoluteUrl = new URL(href, baseUrl).toString();
+                if (absoluteUrl.startsWith('http://') || absoluteUrl.startsWith('https://')) {
+                  links.add(absoluteUrl);
+                }
+              } catch (e) {
+                // Ignore invalid URLs
+              }
+            }
+          }
+        }
+      })
+      
+      // Extract media
+      .on('img[src], video[src], source[src]', {
+        element(element) {
+          if (options.extractMedia || this.session.extract_media) {
+            const src = element.getAttribute('src');
+            if (src) {
+              try {
+                const absoluteUrl = new URL(src, baseUrl).toString();
+                media.add(absoluteUrl);
+              } catch (e) {
+                // Ignore invalid URLs
+              }
+            }
+          }
+        }
+      })
+      
+      // Extract text content and build markdown
+      .on('h1, h2, h3, h4, h5, h6', {
+        text(text) {
+          currentHeading += text.text;
+        },
+        element(element) {
+          if (currentHeading.trim()) {
+            const level = parseInt(element.tagName.slice(1));
+            const markdownHeading = '#'.repeat(level) + ' ' + currentHeading.trim();
+            markdownParts.push(markdownHeading);
+            textContent.push(currentHeading.trim());
+            currentHeading = '';
+          }
+        }
+      })
+      
+      .on('p, div.content, article, main', {
+        text(text) {
+          const cleanText = text.text.trim();
+          if (cleanText.length > 10) {
+            textContent.push(cleanText);
+            if (options.generateMarkdown || this.session.generate_markdown) {
+              markdownParts.push(cleanText);
+            }
+          }
+        }
+      })
+      
+      // Remove script and style content
+      .on('script, style', {
+        element(element) {
+          element.remove();
+        }
+      });
+    
+    await rewriter.transform(response).text();
+    
+    return {
+      title: title.trim(),
+      metadata,
+      links: Array.from(links),
+      media: Array.from(media),
+      text: textContent.join(' ').trim().substring(0, 10000),
+      markdown: this.formatMarkdown(title.trim(), markdownParts)
+    };
   }
 
-  private extractMediaRegex(html: string, baseUrl: string): string[] {
-    const media: Set<string> = new Set();
-    
-    // Extract images
-    const imgRegex = /<img\s+[^>]*src=["']([^"']+)["'][^>]*>/gi;
-    let match;
-    
-    while ((match = imgRegex.exec(html)) !== null) {
-      const src = match[1];
-      if (src) {
-        try {
-          const absoluteUrl = new URL(src, baseUrl).toString();
-          media.add(absoluteUrl);
-        } catch (e) {
-          // Ignore invalid URLs
-        }
-      }
-    }
-
-    // Extract videos
-    const videoRegex = /<(?:video|source)\s+[^>]*src=["']([^"']+)["'][^>]*>/gi;
-    
-    while ((match = videoRegex.exec(html)) !== null) {
-      const src = match[1];
-      if (src) {
-        try {
-          const absoluteUrl = new URL(src, baseUrl).toString();
-          media.add(absoluteUrl);
-        } catch (e) {
-          // Ignore invalid URLs
-        }
-      }
-    }
-
-    return Array.from(media);
-  }
-
-  private extractMainContentRegex(html: string): string {
-    // Remove script and style tags
-    let cleanHtml = html.replace(/<script[^>]*>.*?<\/script>/gis, '');
-    cleanHtml = cleanHtml.replace(/<style[^>]*>.*?<\/style>/gis, '');
-    
-    // Try to find main content areas
-    const contentSelectors = [
-      /<main[^>]*>(.*?)<\/main>/gis,
-      /<article[^>]*>(.*?)<\/article>/gis,
-      /<div[^>]*(?:class|id)=["'][^"']*content[^"']*["'][^>]*>(.*?)<\/div>/gis,
-      /<div[^>]*(?:class|id)=["'][^"']*main[^"']*["'][^>]*>(.*?)<\/div>/gis
-    ];
-
-    for (const regex of contentSelectors) {
-      const match = regex.exec(cleanHtml);
-      if (match && match[1]) {
-        // Extract text content and clean up
-        const textContent = match[1].replace(/<[^>]*>/g, ' ')
-                                    .replace(/\s+/g, ' ')
-                                    .trim();
-        if (textContent.length > 100) {
-          return textContent;
-        }
-      }
-    }
-
-    // Fallback: extract all text content
-    return cleanHtml.replace(/<[^>]*>/g, ' ')
-                    .replace(/\s+/g, ' ')
-                    .trim()
-                    .substring(0, 10000);
-  }
-
-  private convertToMarkdownRegex(html: string, title: string): string {
+  private formatMarkdown(title: string, parts: string[]): string {
     let markdown = '';
-
+    
     if (title) {
       markdown += `# ${title}\n\n`;
     }
-
-    // Extract and convert headings
-    const headingRegex = /<h([1-6])[^>]*>(.*?)<\/h[1-6]>/gi;
-    let match;
     
-    while ((match = headingRegex.exec(html)) !== null) {
-      const level = parseInt(match[1]);
-      const text = match[2].replace(/<[^>]*>/g, '').trim();
-      if (text) {
-        markdown += '#'.repeat(level) + ' ' + text + '\n\n';
+    parts.forEach(part => {
+      if (part.trim()) {
+        markdown += part + '\n\n';
       }
-    }
-
-    // Extract paragraphs
-    const paragraphRegex = /<p[^>]*>(.*?)<\/p>/gi;
+    });
     
-    while ((match = paragraphRegex.exec(html)) !== null) {
-      const text = match[1].replace(/<[^>]*>/g, '').trim();
-      if (text && text.length > 10) {
-        markdown += text + '\n\n';
-      }
-    }
-
-    // If no structured content found, use main content extraction
-    if (markdown.length < 100) {
-      const mainContent = this.extractMainContentRegex(html);
-      const paragraphs = mainContent.split(/\n\s*\n/).filter(p => p.trim().length > 10);
-      
-      paragraphs.forEach(paragraph => {
-        markdown += paragraph.trim() + '\n\n';
-      });
-    }
-
     return markdown.trim();
   }
+
+
+
+
+
+
 
   private getRandomUserAgent(): string {
     return CrawlerEngine.USER_AGENTS[Math.floor(Math.random() * CrawlerEngine.USER_AGENTS.length)];
@@ -518,7 +504,7 @@ export class CrawlerEngine {
     }
 
     // Filter URLs based on domain strategy
-    const filteredUrls = this.filterUrlsByDomainStrategy(urls);
+    const filteredUrls = await this.filterUrlsByDomainStrategy(urls);
     
     // Check if URLs already exist in database
     const existingUrls = new Set();
@@ -554,7 +540,7 @@ export class CrawlerEngine {
     }
   }
 
-  private filterUrlsByDomainStrategy(urls: string[]): string[] {
+  private async filterUrlsByDomainStrategy(urls: string[]): Promise<string[]> {
     const strategy = this.session.domain_strategy || 'same-domain';
     
     if (strategy === 'any') {
@@ -562,7 +548,7 @@ export class CrawlerEngine {
     }
 
     // Get base domain from first discovered URL or session URLs
-    const baseDomain = this.getBaseDomain();
+    const baseDomain = await this.getBaseDomain();
     if (!baseDomain) {
       return urls;
     }
@@ -591,10 +577,42 @@ export class CrawlerEngine {
     });
   }
 
-  private getBaseDomain(): string | null {
-    // This would need to be implemented based on the session's initial URLs
-    // For now, return null to disable domain filtering
-    return null;
+  private async getBaseDomain(): Promise<string | null> {
+    try {
+      // Get the first URL from the crawl session to determine base domain
+      const { results } = await this.db.prepare(`
+        SELECT url FROM crawl_urls 
+        WHERE session_id = ? 
+        ORDER BY depth ASC, created_at ASC 
+        LIMIT 1
+      `).bind(this.sessionId).all();
+      
+      if (results.length > 0) {
+        const firstUrl = results[0] as { url: string };
+        try {
+          const urlObj = new URL(firstUrl.url);
+          // Extract the domain (without subdomain for same-domain strategy)
+          const hostname = urlObj.hostname;
+          const parts = hostname.split('.');
+          
+          // If it's likely a domain with subdomain (more than 2 parts and not an IP)
+          if (parts.length > 2 && !hostname.match(/^\d+\.\d+\.\d+\.\d+$/)) {
+            // Return the last two parts (domain.tld)
+            return parts.slice(-2).join('.');
+          }
+          
+          return hostname;
+        } catch (urlError) {
+          console.error('Error parsing base URL:', urlError);
+          return null;
+        }
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error getting base domain:', error);
+      return null;
+    }
   }
 
   private sleep(ms: number): Promise<void> {

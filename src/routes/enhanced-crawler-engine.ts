@@ -629,10 +629,10 @@ export class EnhancedCrawlerEngine {
         status = 'completed',
         title = ?, 
         content = ?, 
-        markdown = ?, 
+        markdown_content = ?, 
         metadata = ?, 
         links = ?, 
-        media = ?,
+        media_urls = ?,
         extracted_data = ?,
         response_time = ?,
         updated_at = CURRENT_TIMESTAMP

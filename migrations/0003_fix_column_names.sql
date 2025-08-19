@@ -4,6 +4,7 @@
 -- Only add columns if they don't exist
 
 -- Add markdown column (separate from existing markdown_content)
+-- Note: This will fail if the column already exists, but that's expected for idempotent migrations
 ALTER TABLE crawl_urls ADD COLUMN markdown TEXT;
 
 -- Add response_time column (separate from existing processing_time)

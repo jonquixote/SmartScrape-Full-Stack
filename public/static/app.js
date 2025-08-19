@@ -906,9 +906,131 @@ class Crawl4AIApp {
     }
 
     updateSessionProgress(sessionId, progress) {
-        // Update any session progress displays
-        // This would update the modal if it's open, dashboard stats, etc.
+        // Update session progress in dashboard
+        const sessionCard = document.querySelector(`[data-session-id="${sessionId}"]`);
+        if (sessionCard) {
+            // Update status
+            const statusElement = sessionCard.querySelector('.session-status');
+            if (statusElement) {
+                statusElement.textContent = progress.status || 'Unknown';
+                statusElement.className = `session-status px-2 py-1 rounded text-xs font-medium ${
+                    progress.status === 'running' ? 'bg-yellow-100 text-yellow-800' :
+                    progress.status === 'completed' ? 'bg-green-100 text-green-800' :
+                    progress.status === 'failed' ? 'bg-red-100 text-red-800' :
+                    'bg-gray-100 text-gray-800'
+                }`;
+            }
+            
+            // Update progress stats
+            const statsElement = sessionCard.querySelector('.session-stats');
+            if (statsElement) {
+                const completed = progress.urls_completed || 0;
+                const discovered = progress.urls_discovered || 0;
+                const failed = progress.urls_failed || 0;
+                const blocked = progress.urls_blocked || 0;
+                const total = discovered;
+                
+                statsElement.innerHTML = `
+                    <div class="text-sm text-gray-600">
+                        <span class="text-green-600">${completed} completed</span> • 
+                        <span class="text-red-600">${failed} failed</span> • 
+                        <span class="text-yellow-600">${blocked} blocked</span> • 
+                        <span class="text-blue-600">${total} total</span>
+                    </div>
+                    ${total > 0 ? `
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                            <div class="bg-blue-600 h-2 rounded-full" style="width: ${Math.round((completed / total) * 100)}%"></div>
+                        </div>
+                    ` : ''}
+                `;
+            }
+        }
+        
+        // Update modal if it's open for this session
+        const modalElement = document.getElementById('session-modal');
+        if (modalElement && !modalElement.classList.contains('hidden')) {
+            const modalSessionId = modalElement.dataset.sessionId;
+            if (modalSessionId === sessionId.toString()) {
+                this.updateSessionModal(progress);
+            }
+        }
+        
+        // Update crawl tree if visible
+        const treeContainer = document.getElementById('crawl-tree-container');
+        if (treeContainer && !treeContainer.classList.contains('hidden')) {
+            this.updateCrawlTree(sessionId, progress);
+        }
+        
         console.log('Session progress update:', sessionId, progress);
+    }
+    
+    updateSessionModal(progress) {
+        // Update modal progress indicators
+        const progressStats = document.getElementById('modal-progress-stats');
+        if (progressStats) {
+            const completed = progress.urls_completed || 0;
+            const discovered = progress.urls_discovered || 0;
+            const failed = progress.urls_failed || 0;
+            const blocked = progress.urls_blocked || 0;
+            const total = discovered;
+            
+            progressStats.innerHTML = `
+                <div class="grid grid-cols-4 gap-4 mb-4">
+                    <div class="bg-green-50 p-3 rounded-lg">
+                        <div class="text-2xl font-bold text-green-600">${completed}</div>
+                        <div class="text-sm text-green-600">Completed</div>
+                    </div>
+                    <div class="bg-red-50 p-3 rounded-lg">
+                        <div class="text-2xl font-bold text-red-600">${failed}</div>
+                        <div class="text-sm text-red-600">Failed</div>
+                    </div>
+                    <div class="bg-yellow-50 p-3 rounded-lg">
+                        <div class="text-2xl font-bold text-yellow-600">${blocked}</div>
+                        <div class="text-sm text-yellow-600">Blocked</div>
+                    </div>
+                    <div class="bg-blue-50 p-3 rounded-lg">
+                        <div class="text-2xl font-bold text-blue-600">${total}</div>
+                        <div class="text-sm text-blue-600">Total</div>
+                    </div>
+                </div>
+                ${total > 0 ? `
+                    <div class="mb-4">
+                        <div class="flex justify-between text-sm text-gray-600 mb-1">
+                            <span>Progress</span>
+                            <span>${Math.round((completed / total) * 100)}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                                 style="width: ${Math.round((completed / total) * 100)}%"></div>
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+        }
+        
+        // Update status indicator
+        const statusIndicator = document.getElementById('modal-status-indicator');
+        if (statusIndicator) {
+            statusIndicator.innerHTML = `
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    progress.status === 'running' ? 'bg-yellow-100 text-yellow-800' :
+                    progress.status === 'completed' ? 'bg-green-100 text-green-800' :
+                    progress.status === 'failed' ? 'bg-red-100 text-red-800' :
+                    'bg-gray-100 text-gray-800'
+                }">
+                    ${progress.status || 'Unknown'}
+                </span>
+            `;
+        }
+    }
+    
+    updateCrawlTree(sessionId, progress) {
+        // Update the crawl tree visualization with new progress data
+        // This would refresh the tree chart if it's currently displayed
+        if (this.treeChart && document.getElementById('tree-session-id')?.value === sessionId.toString()) {
+            // Trigger a refresh of the tree data
+            this.loadCrawlTree(sessionId);
+        }
     }
 
     async exportSession(sessionId, format) {

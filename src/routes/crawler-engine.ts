@@ -431,12 +431,7 @@ export class CrawlerEngine {
     
     parts.forEach(part => {
       if (part.trim()) {
-        // Check if it's already a heading
-        if (part.startsWith('#')) {
-          markdown += part + '\n\n';
-        } else {
-          markdown += part + '\n\n';
-        }
+        markdown += part + '\n\n';
       }
     });
     

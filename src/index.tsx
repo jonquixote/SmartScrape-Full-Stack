@@ -183,9 +183,14 @@ app.get('/', (c) => {
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Model</label>
                                 <select id="groq-model" class="form-select">
-                                    <option value="llama3-70b-8192">Llama3 70B</option>
-                                    <option value="llama3-8b-8192">Llama3 8B</option>
+                                    <option value="llama3-70b-8192" selected>LLaMA Scout</option>
+                                    <option value="gemma2-9b-it">Maverick</option>
+                                    <option value="llama-3.1-70b-versatile">LLaMA 3.1 70B</option>
+                                    <option value="llama-3.1-8b-instant">LLaMA 3.1 8B (Fast)</option>
+                                    <option value="llama3-8b-8192">LLaMA 3 8B (8k)</option>
+                                    <option value="gemma-7b-it">Gemma 7B</option>
                                     <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
+                                    <option value="whisper-large-v3">Whisper V3 (Audio Transcription)</option>
                                 </select>
                             </div>
                             <div class="mb-4">
@@ -195,6 +200,20 @@ app.get('/', (c) => {
                             <button type="button" id="discover-urls-btn" class="btn-primary">
                                 <i class="fas fa-search mr-2"></i>Discover URLs
                             </button>
+                        </div>
+
+                        <!-- AI Discovery Results -->
+                        <div id="ai-results" class="mb-6 hidden">
+                            <div class="flex items-center justify-between mb-3">
+                                <label class="block text-sm font-medium text-gray-700">Discovered URLs</label>
+                                <div class="flex space-x-2">
+                                    <button type="button" id="select-all-urls" class="text-xs text-blue-600 hover:underline">Select All</button>
+                                    <button type="button" id="deselect-all-urls" class="text-xs text-gray-600 hover:underline">Deselect All</button>
+                                </div>
+                            </div>
+                            <div id="discovered-urls-list" class="max-h-64 overflow-y-auto border rounded-lg p-3 space-y-2">
+                                <!-- URLs will be populated here -->
+                            </div>
                         </div>
 
                         <!-- Manual URL Inputs -->
@@ -210,13 +229,118 @@ https://example.com/page2"></textarea>
                         <div class="border-t pt-6 mt-6">
                             <h3 class="text-lg font-semibold mb-4">Configuration Options</h3>
                             
+                            <!-- Crawl Strategy -->
+                            <div class="mb-6">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Crawl Strategy</label>
+                                <select id="crawl-strategy" class="form-select">
+                                    <option value="basic">Basic Crawl</option>
+                                    <option value="smart" selected>Smart Mode</option>
+                                    <option value="magic">Magic Mode (AI Enhanced)</option>
+                                    <option value="comprehensive">Comprehensive</option>
+                                    <option value="adaptive">Adaptive Crawling</option>
+                                    <option value="deep">Deep Discovery</option>
+                                </select>
+                            </div>
+
+                            <!-- Deep Crawl Options -->
+                            <div class="mb-6">
+                                <label class="flex items-center mb-3">
+                                    <input type="checkbox" id="enable-deep-crawl" class="mr-2">
+                                    <span class="font-medium">Enable Deep Crawling</span>
+                                </label>
+                                <div id="deep-crawl-options" class="hidden pl-6 space-y-4 border-l-2 border-gray-200">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Max Depth</label>
+                                            <input type="number" id="max-depth" class="form-input" value="3" min="1" max="10">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Max URLs</label>
+                                            <input type="number" id="max-urls" class="form-input" value="50" min="1" max="1000">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Domain Strategy</label>
+                                        <select id="domain-strategy" class="form-select">
+                                            <option value="same-domain" selected>Same Domain</option>
+                                            <option value="same-subdomain">Same Subdomain</option>
+                                            <option value="whitelist">Whitelist Domains</option>
+                                            <option value="any">Any Domain</option>
+                                        </select>
+                                    </div>
+                                    <div id="domain-whitelist-container" class="hidden">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Allowed Domains (comma-separated)</label>
+                                        <input type="text" id="domain-whitelist" class="form-input" placeholder="example.com, subdomain.example.com">
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="respect-robots" class="mr-2" checked>
+                                            <span class="text-sm">Respect robots.txt</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="parse-sitemaps" class="mr-2" checked>
+                                            <span class="text-sm">Parse Sitemaps</span>
+                                        </label>
+                                        <label class="flex items-center">
+                                            <input type="checkbox" id="discover-feeds" class="mr-2">
+                                            <span class="text-sm">Discover RSS/Atom Feeds</span>
+                                        </label>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Include Patterns</label>
+                                            <input type="text" id="include-patterns" class="form-input" placeholder="/blog/*, /articles/*, *.html">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Exclude Patterns</label>
+                                            <input type="text" id="exclude-patterns" class="form-input" placeholder="/admin/*, /login/*, *.pdf">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pagination Options -->
+                            <div class="mb-6">
+                                <label class="flex items-center mb-3">
+                                    <input type="checkbox" id="enable-pagination" class="mr-2">
+                                    <span class="font-medium">Enable Pagination Crawling</span>
+                                </label>
+                                <div id="pagination-options" class="hidden pl-6 space-y-4 border-l-2 border-gray-200">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Detection Strategy</label>
+                                        <select id="pagination-strategy" class="form-select">
+                                            <option value="auto" selected>Auto-Detect (Smart)</option>
+                                            <option value="next-link">"Next" Links</option>
+                                            <option value="numbered">Numbered Pages</option>
+                                            <option value="infinite-scroll">Infinite Scroll (Experimental)</option>
+                                            <option value="custom-selector">Custom CSS Selector</option>
+                                        </select>
+                                    </div>
+                                    <div id="custom-selector-options" class="hidden">
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Next Page CSS Selector</label>
+                                        <input type="text" id="next-page-selector" class="form-input" placeholder="a.next, .pagination-next, [rel='next']">
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Max Pages</label>
+                                            <input type="number" id="max-pages" class="form-input" value="10" min="1" max="100">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Page Delay (seconds)</label>
+                                            <input type="number" id="page-delay" class="form-input" value="2" min="1" max="30">
+                                        </div>
+                                    </div>
+                                    <label class="flex items-center">
+                                        <input type="checkbox" id="deduplicate-paginated" class="mr-2" checked>
+                                        <span class="text-sm">Remove Duplicate Content</span>
+                                    </label>
+                                </div>
+                            </div>
+                            
                             <!-- Basic Options -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label class="flex items-center mb-3">
-                                        <input type="checkbox" id="enable-deep-crawl" class="mr-2">
-                                        <span class="font-medium">Enable Deep Crawling</span>
-                                    </label>
+                                    <h4 class="font-medium mb-3">Output Options</h4>
                                     <label class="flex items-center mb-3">
                                         <input type="checkbox" id="generate-markdown" class="mr-2" checked>
                                         <span class="font-medium">Generate Markdown</span>
@@ -225,12 +349,17 @@ https://example.com/page2"></textarea>
                                         <input type="checkbox" id="extract-metadata" class="mr-2" checked>
                                         <span class="font-medium">Extract Metadata</span>
                                     </label>
-                                </div>
-                                <div>
                                     <label class="flex items-center mb-3">
                                         <input type="checkbox" id="extract-links" class="mr-2" checked>
                                         <span class="font-medium">Extract Links</span>
                                     </label>
+                                    <label class="flex items-center mb-3">
+                                        <input type="checkbox" id="extract-media" class="mr-2">
+                                        <span class="font-medium">Extract Media Files</span>
+                                    </label>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium mb-3">Content Processing</h4>
                                     <label class="flex items-center mb-3">
                                         <input type="checkbox" id="smart-cleaning" class="mr-2" checked>
                                         <span class="font-medium">Smart Content Cleaning</span>
@@ -238,6 +367,14 @@ https://example.com/page2"></textarea>
                                     <label class="flex items-center mb-3">
                                         <input type="checkbox" id="remove-ads" class="mr-2" checked>
                                         <span class="font-medium">Remove Ads & Trackers</span>
+                                    </label>
+                                    <label class="flex items-center mb-3">
+                                        <input type="checkbox" id="remove-navigation" class="mr-2" checked>
+                                        <span class="font-medium">Remove Navigation</span>
+                                    </label>
+                                    <label class="flex items-center mb-3">
+                                        <input type="checkbox" id="enable-ai-extraction" class="mr-2">
+                                        <span class="font-medium">Enable AI Extraction</span>
                                     </label>
                                 </div>
                             </div>
@@ -319,10 +456,15 @@ https://example.com/page2"></textarea>
                             <div class="space-y-3">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Default Groq Model</label>
-                                    <select class="form-select">
-                                        <option value="llama3-70b-8192">Llama3 70B</option>
-                                        <option value="llama3-8b-8192">Llama3 8B</option>
+                                    <select class="form-select" id="default-groq-model">
+                                        <option value="llama3-70b-8192" selected>LLaMA Scout</option>
+                                        <option value="gemma2-9b-it">Maverick</option>
+                                        <option value="llama-3.1-70b-versatile">LLaMA 3.1 70B</option>
+                                        <option value="llama-3.1-8b-instant">LLaMA 3.1 8B (Fast)</option>
+                                        <option value="llama3-8b-8192">LLaMA 3 8B (8k)</option>
+                                        <option value="gemma-7b-it">Gemma 7B</option>
                                         <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
+                                        <option value="whisper-large-v3">Whisper V3 (Audio Transcription)</option>
                                     </select>
                                 </div>
                             </div>

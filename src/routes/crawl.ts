@@ -130,25 +130,44 @@ crawl.post('/sessions', async (c) => {
       status: 'pending',
       user_id: 1, // Default user for now - will add auth later
       
-      // Configuration with defaults
+      // Crawl strategy and configuration
+      crawl_strategy: body.crawl_strategy || 'smart',
       enable_deep_crawl: body.enable_deep_crawl || false,
       max_depth: body.max_depth || 3,
-      domain_strategy: body.domain_strategy || 'same',
+      max_urls: body.max_urls || 50,
+      domain_strategy: body.domain_strategy || 'same-domain',
       domain_whitelist: body.domain_whitelist ? JSON.stringify(body.domain_whitelist) : null,
+      respect_robots: body.respect_robots !== false,
+      parse_sitemaps: body.parse_sitemaps !== false,
+      discover_feeds: body.discover_feeds || false,
+      include_patterns: body.include_patterns || null,
+      exclude_patterns: body.exclude_patterns || null,
+      
+      // Pagination settings
       enable_pagination: body.enable_pagination || false,
       pagination_strategy: body.pagination_strategy || 'auto',
       pagination_selector: body.pagination_selector || null,
       max_pages: body.max_pages || 10,
+      page_delay: body.page_delay || 2,
+      deduplicate_paginated: body.deduplicate_paginated !== false,
+      
+      // Output options
       generate_markdown: body.generate_markdown !== false,
       extract_metadata: body.extract_metadata !== false,
       extract_links: body.extract_links !== false,
       extract_media: body.extract_media || false,
+      
+      // AI extraction settings
       enable_ai_extraction: body.enable_ai_extraction || false,
       ai_extraction_schema: body.ai_extraction_schema ? JSON.stringify(body.ai_extraction_schema) : null,
+      
+      // Manual extraction settings
       crawl_delay: body.crawl_delay || 1000,
       delay_jitter: body.delay_jitter || 500,
       max_concurrent: body.max_concurrent || 5,
       user_agents: body.user_agents ? JSON.stringify(body.user_agents) : null,
+      
+      // Content processing
       smart_cleaning: body.smart_cleaning !== false,
       remove_ads: body.remove_ads !== false,
       remove_navigation: body.remove_navigation !== false
@@ -157,21 +176,27 @@ crawl.post('/sessions', async (c) => {
     // Insert session
     const result = await c.env.DB.prepare(`
       INSERT INTO crawl_sessions (
-        title, description, start_method, ai_prompt, groq_model, status, user_id,
-        enable_deep_crawl, max_depth, domain_strategy, domain_whitelist,
-        enable_pagination, pagination_strategy, pagination_selector, max_pages,
+        user_id, title, description, start_method, ai_prompt, groq_model, status,
+        crawl_strategy, enable_deep_crawl, max_depth, max_urls, domain_strategy, domain_whitelist,
+        respect_robots, parse_sitemaps, discover_feeds, include_patterns, exclude_patterns,
+        enable_pagination, pagination_strategy, pagination_selector, max_pages, page_delay, deduplicate_paginated,
         generate_markdown, extract_metadata, extract_links, extract_media,
         enable_ai_extraction, ai_extraction_schema, crawl_delay, delay_jitter,
-        max_concurrent, user_agents, smart_cleaning, remove_ads, remove_navigation
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        max_concurrent, user_agents, smart_cleaning, remove_ads, remove_navigation,
+        urls_discovered, urls_completed, urls_failed, urls_blocked
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
-      sessionData.title, sessionData.description, sessionData.start_method,
-      sessionData.ai_prompt, sessionData.groq_model, sessionData.status, sessionData.user_id,
-      sessionData.enable_deep_crawl, sessionData.max_depth, sessionData.domain_strategy, sessionData.domain_whitelist,
-      sessionData.enable_pagination, sessionData.pagination_strategy, sessionData.pagination_selector, sessionData.max_pages,
+      sessionData.user_id, sessionData.title, sessionData.description, sessionData.start_method,
+      sessionData.ai_prompt, sessionData.groq_model, sessionData.status,
+      sessionData.crawl_strategy, sessionData.enable_deep_crawl, sessionData.max_depth, sessionData.max_urls, 
+      sessionData.domain_strategy, sessionData.domain_whitelist, sessionData.respect_robots, sessionData.parse_sitemaps,
+      sessionData.discover_feeds, sessionData.include_patterns, sessionData.exclude_patterns,
+      sessionData.enable_pagination, sessionData.pagination_strategy, sessionData.pagination_selector, 
+      sessionData.max_pages, sessionData.page_delay, sessionData.deduplicate_paginated,
       sessionData.generate_markdown, sessionData.extract_metadata, sessionData.extract_links, sessionData.extract_media,
       sessionData.enable_ai_extraction, sessionData.ai_extraction_schema, sessionData.crawl_delay, sessionData.delay_jitter,
-      sessionData.max_concurrent, sessionData.user_agents, sessionData.smart_cleaning, sessionData.remove_ads, sessionData.remove_navigation
+      sessionData.max_concurrent, sessionData.user_agents, sessionData.smart_cleaning, sessionData.remove_ads, sessionData.remove_navigation,
+      0, 0, 0, 0 // urls_discovered, urls_completed, urls_failed, urls_blocked
     ).run();
 
     const sessionId = result.meta.last_row_id;

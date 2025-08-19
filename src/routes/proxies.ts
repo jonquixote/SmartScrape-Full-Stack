@@ -167,32 +167,56 @@ proxies.post('/test', async (c) => {
           return { proxy_id: proxyId, status: 'failed', error: 'Proxy not found' } as ProxyTestResult;
         }
 
-        const testUrl = 'https://httpbin.org/get';
-        const wrapperUrl = 'https://api.allorigins.win/raw?url=' + 
-          encodeURIComponent(proxy.url.replace('{URL}', testUrl));
+        const testUrl = 'https://httpbin.org/ip';
+        
+        // Try different test approaches based on proxy URL format
+        let finalTestUrl = proxy.url;
+        if (proxy.url.includes('{URL}')) {
+          // Static wrapper format
+          finalTestUrl = proxy.url.replace('{URL}', encodeURIComponent(testUrl));
+        } else {
+          // Direct proxy or other format - try with a simple wrapper
+          finalTestUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(testUrl);
+        }
         
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 8000);
         const startTime = Date.now();
 
         try {
-          const response = await fetch(wrapperUrl, { signal: controller.signal });
+          const response = await fetch(finalTestUrl, { 
+            signal: controller.signal,
+            headers: {
+              'User-Agent': 'Crawl4AI-Proxy-Test/1.0'
+            }
+          });
           const latency = Date.now() - startTime;
           
           if (response.ok) {
-            const score = Math.max(1, 100 - Math.floor(latency / 100));
-            
-            // Update proxy with success
-            await c.env.DB.prepare(`
-              UPDATE proxies 
-              SET status = 'active', latency = ?, score = ?, success_count = success_count + 1,
-                  total_requests = total_requests + 1, last_tested_at = CURRENT_TIMESTAMP
-              WHERE id = ?
-            `).bind(latency, score, proxyId).run();
+            // Try to parse response to verify it's valid
+            try {
+              const responseText = await response.text();
+              // Basic validation - should contain some expected content
+              if (responseText.length > 10) {
+                const score = Math.max(1, 100 - Math.floor(latency / 100));
+                
+                // Update proxy with success
+                await c.env.DB.prepare(`
+                  UPDATE proxies 
+                  SET status = 'active', latency = ?, score = ?, success_count = success_count + 1,
+                      total_requests = total_requests + 1, last_tested_at = CURRENT_TIMESTAMP
+                  WHERE id = ?
+                `).bind(latency, score, proxyId).run();
 
-            return { proxy_id: proxyId, status: 'active', latency } as ProxyTestResult;
+                return { proxy_id: proxyId, status: 'active', latency } as ProxyTestResult;
+              } else {
+                throw new Error('Empty or invalid response');
+              }
+            } catch (parseError) {
+              throw new Error('Failed to parse response');
+            }
           } else {
-            throw new Error('Test failed');
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
           }
         } catch (e) {
           // Update proxy with failure

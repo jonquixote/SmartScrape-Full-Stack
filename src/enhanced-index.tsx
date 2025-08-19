@@ -3,7 +3,7 @@ import { cors } from 'hono/cors'
 import { serveStatic } from 'hono/cloudflare-workers'
 import { Bindings } from './types/database'
 import crawlRoutes from './routes/crawl'
-import proxyRoutes from './routes/proxies'
+import proxyRoutes from './routes/enhanced-proxies'
 
 const app = new Hono<{ Bindings: Bindings }>()
 
@@ -15,7 +15,10 @@ app.use('/static/*', serveStatic({ root: './public' }))
 
 // API Routes
 app.route('/api/crawl', crawlRoutes)
-app.route('/api/proxies', proxyRoutes)
+// Import enhanced routes
+import enhancedProxyRoutes from './routes/enhanced-proxies'
+
+app.route('/api/proxies', enhancedProxyRoutes)
 
 // Health check endpoint
 app.get('/api/health', (c) => {

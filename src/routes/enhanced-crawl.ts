@@ -77,7 +77,7 @@ crawl.post('/sessions/create-enhanced', async (c) => {
     }
 
     // Generate unique session ID
-    const sessionId = Date.now().toString();
+    const sessionId = crypto.randomUUID();
     const currentTime = new Date().toISOString();
 
     // Prepare enhanced session data

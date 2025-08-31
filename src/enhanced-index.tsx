@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { serveStatic } from 'hono/cloudflare-workers'
+import { serveStatic } from 'hono/cloudflare-pages'
 import { Bindings } from './types/database'
 import crawlRoutes from './routes/crawl'
 import proxyRoutes from './routes/enhanced-proxies'
@@ -103,6 +103,10 @@ app.get('/', (c) => {
                 color: #3b82f6;
                 box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             }
+            .tab-btn.settings {
+                background: #ede9fe;
+                color: #6b21a8;
+            }
             .session-tab-btn {
                 transition: all 0.2s ease;
                 border-bottom: 2px solid transparent;
@@ -177,6 +181,9 @@ app.get('/', (c) => {
                 </button>
                 <button class="tab-btn flex-1 py-2 px-4 rounded-md font-medium transition-all" data-tab="proxies">
                     <i class="fas fa-shield-alt mr-2"></i>Proxies
+                </button>
+                <button class="tab-btn flex-1 py-2 px-4 rounded-md font-medium transition-all" data-tab="settings">
+                    <i class="fas fa-cog mr-2"></i>Settings
                 </button>
             </div>
         </div>
@@ -536,6 +543,80 @@ https://third-site.org/articles"></textarea>
                             <p>Loading proxy information...</p>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="settings-tab" class="tab-content">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-6">
+                        <i class="fas fa-cog mr-2 text-indigo-600"></i>Application Settings
+                    </h2>
+                    
+                    <form id="settings-form" class="space-y-6">
+                        <!-- API Keys -->
+                        <div class="grid grid-cols-1 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Groq API Key</label>
+                                <input type="password" id="groq-api-key" class="form-input" placeholder="gsk_...">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">OpenAI API Key</label>
+                                <input type="password" id="openai-api-key" class="form-input" placeholder="sk_...">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Anthropic API Key</label>
+                                <input type="password" id="anthropic-api-key" class="form-input" placeholder="sk-ant-...">
+                            </div>
+                        </div>
+
+                        <!-- Database Connection -->
+                        <div class="mt-6">
+                            <h3 class="font-medium text-gray-800 mb-3">Database Connection</h3>
+                            <div class="grid grid-cols-1 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Database URL</label>
+                                    <input type="text" id="db-url" class="form-input" placeholder="postgresql://user:password@localhost:5432/dbname">
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                                        <input type="text" id="db-username" class="form-input">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                                        <input type="password" id="db-password" class="form-input">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Proxy Settings -->
+                        <div class="mt-6">
+                            <h3 class="font-medium text-gray-800 mb-3">Proxy Configuration</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Default Proxy</label>
+                                    <select id="default-proxy" class="form-select">
+                                        <option value="none">No Proxy</option>
+                                        <option value="rotating">Rotating Proxies</option>
+                                        <option value="custom">Custom Proxy</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Proxy Timeout (ms)</label>
+                                    <input type="number" id="proxy-timeout" class="form-input" value="10000" min="1000">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex items-center justify-end pt-6 border-t">
+                            <button type="button" id="save-settings-btn" class="btn-primary">
+                                <i class="fas fa-save mr-2"></i>Save Settings
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

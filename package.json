@@ -17,6 +17,7 @@
     "test": "curl http://localhost:3000"
   },
   "dependencies": {
+    "@hono/node-server": "^1.19.0",
     "@types/cheerio": "^0.22.35",
     "axios": "^1.11.0",
     "cheerio": "^1.1.2",

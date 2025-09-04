@@ -320,12 +320,16 @@
                     
                     <div class="tab-content" id="discovery-tab">
                         <div class="space-y-4">
-                            <div>
-                                <label class="flex items-center"><input type="checkbox" id="enable-deep-crawl" class="mr-2 rounded"><span class="font-medium">Enable Deep Crawling</span></label>
+                            <div class="bg-blue-50 rounded-lg p-4">
+                                <h4 class="font-semibold text-blue-800 mb-2"><i class="fas fa-sitemap mr-1"></i>Deep Crawling</h4>
+                                <div class="mb-3">
+                                    <label class="flex items-center"><input type="checkbox" id="enable-deep-crawl" class="mr-2 rounded"><span class="font-medium">Enable Deep Crawling</span></label>
+                                    <p class="text-xs text-gray-600 mt-1">Automatically follow links to discover more content</p>
+                                </div>
                                 <div id="deep-crawl-options" class="pl-4 border-l-2 space-y-3 mt-2" style="display: none;">
                                     <div class="grid grid-cols-2 gap-3">
-                                        <div><label class="block text-xs font-medium text-gray-600">Max Depth</label><input type="number" id="max-depth" class="form-input text-sm" value="3" min="1"></div>
-                                        <div><label class="block text-xs font-medium text-gray-600">Max URLs</label><input type="number" id="max-urls" class="form-input text-sm" value="50" min="1"></div>
+                                        <div><label class="block text-xs font-medium text-gray-600">Max Depth</label><input type="number" id="max-depth" class="form-input text-sm" value="3" min="1" max="10"></div>
+                                        <div><label class="block text-xs font-medium text-gray-600">Max URLs</label><input type="number" id="max-urls" class="form-input text-sm" value="50" min="1" max="500"></div>
                                     </div>
                                     <div><label class="block text-xs font-medium text-gray-600">Domain Strategy</label><select id="domain-strategy" class="form-select text-sm"><option value="same-domain" selected>Same Domain</option><option value="same-subdomain">Same Subdomain</option><option value="whitelist">Whitelist Domains</option><option value="any">Any Domain</option></select></div>
                                     <div id="domain-whitelist-container" style="display: none;">
@@ -342,14 +346,18 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="pt-4 mt-4 border-t">
-                                <label class="flex items-center"><input type="checkbox" id="enable-pagination" class="mr-2 rounded"><span class="font-medium">Enable Pagination Crawling</span></label>
+                            <div class="bg-green-50 rounded-lg p-4">
+                                <h4 class="font-semibold text-green-800 mb-2"><i class="fas fa-file-alt mr-1"></i>Pagination Crawling</h4>
+                                <div class="mb-3">
+                                    <label class="flex items-center"><input type="checkbox" id="enable-pagination" class="mr-2 rounded"><span class="font-medium">Enable Pagination Crawling</span></label>
+                                    <p class="text-xs text-gray-600 mt-1">Automatically follow pagination links</p>
+                                </div>
                                 <div id="pagination-options" class="pl-4 border-l-2 space-y-3 mt-2" style="display: none;">
                                     <div><label class="block text-xs font-medium text-gray-600">Detection Strategy</label><select id="pagination-strategy" class="form-select text-sm"><option value="auto" selected>Auto-Detect (Smart)</option><option value="next-link">"Next" Links</option><option value="numbered">Numbered Pages</option><option value="infinite-scroll">Infinite Scroll (Experimental)</option><option value="custom-selector">Custom CSS Selector</option></select></div>
                                     <div id="custom-selector-options" style="display: none;"><label class="block text-xs font-medium text-gray-600">Next Page CSS Selector</label><input type="text" id="next-page-selector" class="form-input text-sm" placeholder="a.next, .pagination-next, [rel='next']"></div>
                                     <div class="grid grid-cols-2 gap-3">
-                                        <div><label class="block text-xs font-medium text-gray-600">Max Pages</label><input type="number" id="max-pages" class="form-input text-sm" value="10" min="1"></div>
-                                        <div><label class="block text-xs font-medium text-gray-600">Page Delay (s)</label><input type="number" id="page-delay" class="form-input text-sm" value="2" min="1"></div>
+                                        <div><label class="block text-xs font-medium text-gray-600">Max Pages</label><input type="number" id="max-pages" class="form-input text-sm" value="10" min="1" max="100"></div>
+                                        <div><label class="block text-xs font-medium text-gray-600">Page Delay (s)</label><input type="number" id="page-delay" class="form-input text-sm" value="2" min="1" max="30"></div>
                                     </div>
                                     <div><label class="flex items-center text-sm"><input type="checkbox" id="deduplicate-paginated" class="mr-2 rounded" checked>Remove Duplicate Content</label></div>
                                 </div>
@@ -551,6 +559,19 @@
         </div>
     </div>
 
+    <!-- Result Modal -->
+    <div id="result-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 p-4 lg:p-12 hidden">
+        <div class="bg-white w-full h-full rounded-lg shadow-2xl flex flex-col">
+            <div class="p-3 border-b flex justify-between items-center bg-gray-50 rounded-t-lg">
+                <h3 class="font-semibold text-gray-800"><i class="fas fa-file-alt mr-2 text-blue-600"></i>Scraped Result Details</h3>
+                <button id="close-result-modal" class="text-gray-500 hover:text-red-600"><i class="fas fa-times-circle fa-lg"></i></button>
+            </div>
+            <div class="flex-grow overflow-y-auto p-6" id="result-modal-content">
+                <!-- Content will be populated dynamically -->
+            </div>
+        </div>
+    </div>
+
     <script>
         // Extending the existing JavaScript class to include the missing Create Session functionality
         class Crawl4AIUltimatePro {
@@ -603,6 +624,30 @@
                 document.getElementById('start-crawl').addEventListener('click', () => this.startCrawl());
                 document.getElementById('stop-crawl').addEventListener('click', () => this.stopCrawl());
                 document.getElementById('clear-results').addEventListener('click', () => this.clearResults());
+                
+                // Modal events
+                document.getElementById('close-result-modal').addEventListener('click', () => this.closeResultModal());
+                
+                // Toggles & Dynamic UI
+                document.getElementById('enable-deep-crawl').addEventListener('change', (e) => this.toggleSection('deep-crawl-options', e.target.checked));
+                document.getElementById('enable-pagination').addEventListener('change', (e) => this.toggleSection('pagination-options', e.target.checked));
+                document.getElementById('enable-ai-extraction').addEventListener('change', (e) => this.toggleSection('ai-options', e.target.checked));
+                document.getElementById('domain-strategy').addEventListener('change', (e) => this.toggleSection('domain-whitelist-container', e.target.value === 'whitelist'));
+                document.getElementById('pagination-strategy').addEventListener('change', (e) => this.toggleSection('custom-selector-options', e.target.value === 'custom-selector'));
+                document.getElementById('toggle-api-key').addEventListener('click', () => this.toggleApiKeyVisibility());
+                
+                // Add event listener for max depth and max URLs to ensure reasonable values
+                document.getElementById('max-depth').addEventListener('change', (e) => {
+                    const value = parseInt(e.target.value);
+                    if (value < 1) e.target.value = 1;
+                    if (value > 10) e.target.value = 10;
+                });
+                
+                document.getElementById('max-urls').addEventListener('change', (e) => {
+                    const value = parseInt(e.target.value);
+                    if (value < 1) e.target.value = 1;
+                    if (value > 500) e.target.value = 500;
+                });
             }
 
             switchTab(tabName) {
@@ -836,6 +881,15 @@
                     return;
                 }
 
+                // Get URLs to crawl
+                const urlsInput = document.getElementById('urls-input').value;
+                const urls = urlsInput.split('\n').filter(url => url.trim() !== '');
+                
+                if (urls.length === 0) {
+                    this.showMessage('Please enter at least one URL to crawl', 'error');
+                    return;
+                }
+
                 this.isRunning = true;
                 this.abortController = new AbortController();
                 
@@ -845,26 +899,238 @@
                 
                 this.showMessage('Starting crawl with enhanced Crawl4AI integration...', 'success');
                 
-                // Simulate crawling process
-                // In real implementation, this would integrate with your backend Crawl4AI service
-                await this.simulateCrawlProcess();
-            }
-
-            async simulateCrawlProcess() {
-                // Simulate the crawling process with progress updates
-                for (let i = 0; i <= 100; i += 10) {
+                // Clear previous results
+                document.getElementById('results-container').innerHTML = '';
+                this.currentResults.clear();
+                this.stats = { discovered: 0, completed: 0, failed: 0, blocks: 0, requests: 0, maxDepth: 0 };
+                this.updateStatsUI();
+                
+                // Process each URL
+                for (const url of urls) {
                     if (!this.isRunning) break;
-                    
-                    document.getElementById('progress-bar').style.width = i + '%';
-                    document.getElementById('status-message').textContent = `Processing... ${i}%`;
-                    
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                    await this.crawlUrl(url);
                 }
                 
                 if (this.isRunning) {
                     this.showMessage('Crawl completed successfully!', 'success');
                     this.stopCrawl();
                 }
+            }
+
+            async crawlUrl(url) {
+                try {
+                    // Prepare crawl configuration
+                    const crawlConfig = {
+                        url: url,
+                        strategy: document.getElementById('crawl-mode').value,
+                        extraction_strategy: "css_selector",
+                        chunking_strategy: "semantic",
+                        enable_pagination: document.getElementById('enable-pagination').checked,
+                        pagination_strategy: document.getElementById('pagination-strategy').value,
+                        enable_deep_crawl: document.getElementById('enable-deep-crawl').checked,
+                        max_depth: parseInt(document.getElementById('max-depth').value) || 3,
+                        max_urls: parseInt(document.getElementById('max-urls').value) || 50,
+                        javascript_enabled: true,
+                        wait_for_selector: null,
+                        screenshot: false,
+                        user_agent: "Mozilla/5.0 (compatible; Crawl4AI Demo Bot/1.0)",
+                        proxy: null,
+                        session_id: "demo-session-001",
+                        max_length: 8192,
+                        overlap: 100
+                    };
+
+                    // Update stats
+                    this.stats.discovered++;
+                    this.updateStatsUI();
+                    
+                    // Send request to Crawl4AI service
+                    const response = await fetch('http://localhost:8000/crawl', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(crawlConfig)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    
+                    // Handle deep crawl results
+                    if (result.is_deep_crawl) {
+                        // Update stats for all crawled URLs
+                        this.stats.completed += result.results.filter(r => r.success).length;
+                        this.stats.failed += result.results.filter(r => !r.success).length;
+                        this.stats.discovered = result.results.length;
+                        this.updateStatsUI();
+                        
+                        // Add all results to current results and UI
+                        result.results.forEach(res => {
+                            this.currentResults.set(res.url, res);
+                            this.addResultCard(res);
+                        });
+                    } else {
+                        // Update stats for single URL crawl
+                        if (result.success) {
+                            this.stats.completed++;
+                        } else {
+                            this.stats.failed++;
+                        }
+                        this.updateStatsUI();
+                        
+                        // Add result to current results
+                        this.currentResults.set(url, result);
+                        
+                        // Add result card to UI
+                        this.addResultCard(result);
+                    }
+                    
+                } catch (error) {
+                    console.error('Error crawling URL:', error);
+                    this.stats.failed++;
+                    this.updateStatsUI();
+                    
+                    // Add error result card
+                    const errorResult = {
+                        success: false,
+                        url: url,
+                        error: error.message
+                    };
+                    
+                    this.currentResults.set(url, errorResult);
+                    this.addResultCard(errorResult);
+                }
+            }
+
+            addResultCard(result) {
+                const container = document.getElementById('results-container');
+                if (container.querySelector('.text-center')) {
+                    container.innerHTML = '';
+                }
+                
+                const card = document.createElement('div');
+                card.className = `crawl-card ${result.success ? 'success' : 'failed'} bg-white rounded-lg shadow p-4 cursor-pointer`;
+                card.dataset.url = result.url;
+                
+                if (result.success) {
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="font-semibold text-blue-700">${result.title || 'No Title'}</p>
+                                <a href="${result.url}" target="_blank" class="text-xs text-gray-500 hover:underline">${this.truncateUrl(result.url, 70)}</a>
+                            </div>
+                            <div class="flex items-center space-x-2 text-xs">
+                                <span class="text-gray-400">D:0</span>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-xs flex space-x-4">
+                            <span class="text-gray-500"><i class="fas fa-link mr-1"></i> ${result.links ? result.links.length : 0} links</span>
+                            <span class="text-gray-500"><i class="fas fa-image mr-1"></i> ${result.media ? result.media.length : 0} media</span>
+                        </div>
+                        <div class="mt-4 extraction-preview">${result.markdown ? result.markdown.substring(0, 300) : ''}...</div>
+                    `;
+                } else {
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="font-semibold text-red-700">Crawl Failed</p>
+                                <a href="${result.url}" target="_blank" class="text-xs text-gray-500 hover:underline">${this.truncateUrl(result.url, 70)}</a>
+                            </div>
+                        </div>
+                        <div class="mt-3 message error"><strong>Error:</strong> ${result.error}</div>
+                    `;
+                }
+                
+                card.addEventListener('click', () => this.openResultModal(result));
+                container.prepend(card);
+            }
+
+            openResultModal(result) {
+                const modal = document.getElementById('result-modal');
+                const content = document.getElementById('result-modal-content');
+                
+                if (result.success) {
+                    content.innerHTML = `
+                        <div class="mb-6">
+                            <h2 class="text-2xl font-bold text-gray-800 mb-2">${result.title || 'No Title'}</h2>
+                            <a href="${result.url}" target="_blank" class="text-blue-600 hover:underline">${result.url}</a>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-blue-50 rounded-lg p-4">
+                                <h3 class="font-semibold text-blue-800 mb-2">Metadata</h3>
+                                <div class="text-sm">
+                                    <p><strong>Links Found:</strong> ${result.links ? result.links.length : 0}</p>
+                                    <p><strong>Media Assets:</strong> ${result.media ? result.media.length : 0}</p>
+                                    ${result.performance_metrics ? `
+                                        <p><strong>Response Time:</strong> ${result.performance_metrics.response_time} ms</p>
+                                        <p><strong>Content Size:</strong> ${result.performance_metrics.content_size} bytes</p>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            
+                            <div class="bg-green-50 rounded-lg p-4">
+                                <h3 class="font-semibold text-green-800 mb-2">Content Stats</h3>
+                                <div class="text-sm">
+                                    <p><strong>Markdown Length:</strong> ${result.markdown ? result.markdown.length : 0} characters</p>
+                                    ${result.chunks ? `<p><strong>Content Chunks:</strong> ${result.chunks.length}</p>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-800 mb-2">Extracted Content</h3>
+                            <div class="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto">
+                                <pre class="whitespace-pre-wrap text-sm">${result.markdown || 'No content extracted'}</pre>
+                            </div>
+                        </div>
+                        
+                        ${result.extracted_content ? `
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-800 mb-2">Structured Data</h3>
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <pre class="whitespace-pre-wrap text-sm">${JSON.stringify(result.extracted_content, null, 2)}</pre>
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        ${result.chunks ? `
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-800 mb-2">Content Chunks</h3>
+                            <div class="space-y-4">
+                                ${result.chunks.map((chunk, index) => `
+                                    <div class="bg-gray-50 rounded-lg p-4">
+                                        <h4 class="font-medium text-gray-700 mb-2">Chunk ${index + 1}</h4>
+                                        <p class="text-sm">${chunk.content}</p>
+                                        ${chunk.metadata ? `<p class="text-xs text-gray-500 mt-2">Metadata: ${JSON.stringify(chunk.metadata)}</p>` : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+                    `;
+                } else {
+                    content.innerHTML = `
+                        <div class="mb-6">
+                            <h2 class="text-2xl font-bold text-red-700 mb-2">Crawl Failed</h2>
+                            <a href="${result.url}" target="_blank" class="text-blue-600 hover:underline">${result.url}</a>
+                        </div>
+                        
+                        <div class="bg-red-50 rounded-lg p-4">
+                            <h3 class="font-semibold text-red-800 mb-2">Error Details</h3>
+                            <p class="text-sm">${result.error}</p>
+                        </div>
+                    `;
+                }
+                
+                modal.classList.remove('hidden');
+            }
+
+            closeResultModal() {
+                document.getElementById('result-modal').classList.add('hidden');
             }
 
             stopCrawl() {
@@ -889,7 +1155,9 @@
                 // Reset UI
                 document.getElementById('progress-bar').style.width = '0%';
                 document.getElementById('status-message').textContent = 'Ultimate crawler ready.';
+                document.getElementById('results-container').innerHTML = '<div class="text-center text-gray-500 py-12"><div class="animate-bounce-slow"><i class="fas fa-search text-6xl mb-4 text-gray-300"></i></div><p>Start crawling to see results.</p></div>';
                 
+                this.updateStatsUI();
                 this.showMessage('Results cleared', 'success');
             }
 
@@ -907,6 +1175,39 @@
                         messageDiv.parentNode.removeChild(messageDiv);
                     }
                 }, 5000);
+            }
+
+            updateStatsUI() {
+                document.getElementById('total-urls').textContent = this.stats.discovered;
+                document.getElementById('completed-urls').textContent = this.stats.completed;
+                document.getElementById('failed-urls').textContent = this.stats.failed;
+                document.getElementById('blocks-encountered').textContent = this.stats.blocks;
+                document.getElementById('current-depth').textContent = this.stats.maxDepth;
+                
+                // Update progress bar
+                const progress = this.stats.discovered > 0 ? Math.round((this.stats.completed + this.stats.failed) / this.stats.discovered * 100) : 0;
+                document.getElementById('progress-bar').style.width = `${progress}%`;
+                
+                // Update status message
+                document.getElementById('status-message').textContent = 
+                    this.isRunning ? `Crawling... ${this.stats.completed} completed, ${this.stats.failed} failed` : 'Ultimate crawler ready.';
+                
+                // Update chart
+                if (this.progressChart) {
+                    const now = new Date();
+                    const timeLabel = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+                    
+                    this.progressChart.data.labels.push(timeLabel);
+                    this.progressChart.data.datasets[0].data.push(this.stats.completed);
+                    
+                    // Keep only the last 20 data points
+                    if (this.progressChart.data.labels.length > 20) {
+                        this.progressChart.data.labels.shift();
+                        this.progressChart.data.datasets[0].data.shift();
+                    }
+                    
+                    this.progressChart.update();
+                }
             }
 
             initializeChart() {
@@ -936,6 +1237,10 @@
                         }
                     });
                 }
+            }
+
+            truncateUrl(url, maxLength = 60) {
+                return url.length > maxLength ? url.substring(0, maxLength) + '...' : url;
             }
         }
 

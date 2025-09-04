@@ -1,0 +1,1805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crawl4AI Comprehensive Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <div class="glass-effect shadow-lg mb-6 sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="relative">
+                        <i class="fas fa-spider text-blue-600 text-3xl mr-3"></i>
+                        <div class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full pulse-ring"></div>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold gradient-text">Crawl4AI</h1>
+                        <p class="text-gray-600 text-sm">Comprehensive Feature Demo</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <button id="api-keys-btn" class="btn-secondary no-print"><i class="fas fa-key mr-1"></i>API Keys</button>
+                        <button id="settings-btn" class="btn-secondary no-print"><i class="fas fa-cog mr-1"></i>Settings</button>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="bg-gray-200 px-3 py-2 rounded-full flex items-center">
+                            <div class="w-2 h-2 bg-green-500 rounded-full mr-2" id="connection-indicator"></div>
+                            <span class="text-sm font-medium" id="connection-status">Ready</span>
+                        </div>
+                        <button id="clear-all-btn" class="btn-danger no-print">
+                            <i class="fas fa-trash mr-1"></i>Clear All
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4">
+        <div id="message-container" class="mb-6"></div>
+        
+        <!-- Main Input Section -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4"><i class="fas fa-search mr-2 text-blue-600"></i>Your Crawling Prompt</h2>
+            <div class="mb-4">
+                <textarea id="crawl-prompt" class="form-input" rows="3" placeholder="Enter a URL to crawl or describe what you want to find... e.g., 'https://example.com' or 'Find all news articles about AI from tech websites'"></textarea>
+            </div>
+            
+            <!-- Quick Feature Toggles -->
+            <div class="flex flex-wrap gap-2 mb-4">
+                <button class="feature-toggle-btn" data-feature="deep-crawl">
+                    <i class="fas fa-project-diagram mr-1"></i>Deep Crawl
+                </button>
+                <button class="feature-toggle-btn" data-feature="pagination">
+                    <i class="fas fa-list-ol mr-1"></i>Pagination
+                </button>
+                <button class="feature-toggle-btn" data-feature="ai-extraction">
+                    <i class="fas fa-brain mr-1"></i>AI Extraction
+                </button>
+                <button class="feature-toggle-btn" data-feature="screenshot">
+                    <i class="fas fa-camera mr-1"></i>Screenshot
+                </button>
+                <button class="feature-toggle-btn" data-feature="javascript">
+                    <i class="fas fa-code mr-1"></i>JavaScript
+                </button>
+                <button class="feature-toggle-btn" data-feature="proxy">
+                    <i class="fas fa-shield-alt mr-1"></i>Proxy
+                </button>
+            </div>
+            
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="ai-discovery-toggle" class="mr-2 rounded">
+                        <span class="text-sm">AI Discovery</span>
+                    </label>
+                </div>
+                <button id="start-crawl-btn" class="btn-success"><i class="fas fa-play mr-2"></i>Start Crawling</button>
+            </div>
+        </div>
+        
+        <!-- Feature Configuration Accordion -->
+        <div class="bg-white rounded-xl shadow-lg mb-6">
+            <div class="border-b">
+                <button class="w-full flex justify-between items-center p-4 text-left font-medium" id="features-accordion-btn">
+                    <span><i class="fas fa-sliders-h mr-2"></i>Advanced Configuration</span>
+                    <i class="fas fa-chevron-down transition-transform" id="accordion-icon"></i>
+                </button>
+            </div>
+            <div class="p-4" id="features-accordion-content" style="display: none;">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                    <!-- Crawl Strategy -->
+                    <div class="border rounded-lg p-3">
+                        <h3 class="font-medium mb-2">Crawl Strategy</h3>
+                        <select id="crawl-strategy" class="form-select w-full">
+                            <option value="basic">Basic Crawl</option>
+                            <option value="smart">Smart Mode</option>
+                            <option value="magic">Magic Mode</option>
+                            <option value="comprehensive">Comprehensive</option>
+                            <option value="adaptive">Adaptive Crawling</option>
+                            <option value="deep">Deep Discovery</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Extraction Strategy -->
+                    <div class="border rounded-lg p-3">
+                        <h3 class="font-medium mb-2">Extraction Strategy</h3>
+                        <select id="extraction-strategy" class="form-select w-full">
+                            <option value="css_selector">CSS Selector</option>
+                            <option value="llm_based">LLM Based</option>
+                            <option value="cosine">Cosine Strategy</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Chunking Strategy -->
+                    <div class="border rounded-lg p-3">
+                        <h3 class="font-medium mb-2">Chunking Strategy</h3>
+                        <select id="chunking-strategy" class="form-select w-full">
+                            <option value="semantic">Semantic</option>
+                            <option value="regex">Regex</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Deep Crawl Settings -->
+                    <div class="border rounded-lg p-3">
+                        <h3 class="font-medium mb-2">Deep Crawl</h3>
+                        <div class="space-y-2">
+                            <label class="flex items-center">
+                                <input type="number" id="max-depth" class="form-input w-16 mr-2" value="3" min="1" max="10">
+                                <span class="text-sm">Max Depth</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="number" id="max-urls" class="form-input w-16 mr-2" value="50" min="1">
+                                <span class="text-sm">Max URLs</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Pagination Settings -->
+                    <div class="border rounded-lg p-3">
+                        <h3 class="font-medium mb-2">Pagination</h3>
+                        <select id="pagination-strategy" class="form-select w-full">
+                            <option value="auto">Auto Detect</option>
+                            <option value="next-link">Next Link</option>
+                            <option value="numbered">Numbered</option>
+                            <option value="infinite-scroll">Infinite Scroll</option>
+                            <option value="custom-selector">Custom Selector</option>
+                        </select>
+                    </div>
+                    
+                    <!-- AI Extraction Settings -->
+                    <div class="border rounded-lg p-3">
+                        <h3 class="font-medium mb-2">AI Extraction</h3>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Provider</label>
+                                <select id="ai-provider" class="form-select text-sm">
+                                    <option value="openai">OpenAI</option>
+                                    <option value="groq">Groq</option>
+                                    <option value="anthropic">Anthropic</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Model</label>
+                                <select id="ai-model" class="form-select text-sm">
+                                    <option value="llama-3.1-70b-versatile">LLaMA 3.1 70B</option>
+                                    <option value="llama-3.1-8b-instant" selected>LLaMA 3.1 8B</option>
+                                    <option value="llama-3.3-70b-specdec">LLaMA 3.3 70B SpecDec</option>
+                                    <option value="llama-3.3-70b-versatile">LLaMA 3.3 70B Versatile</option>
+                                    <option value="gemma2-9b-it">Gemma 2 9B</option>
+                                    <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
+                                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                                    <option value="gpt-4">GPT-4</option>
+                                    <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                                    <option value="claude-3-opus">Claude 3 Opus</option>
+                                    <option value="claude-3-sonnet">Claude 3 Sonnet</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-600 mb-1">Request Delay (ms)</label>
+                                <input type="number" id="ai-request-delay" class="form-input text-sm" value="1000" min="100" step="100">
+                            </div>
+                            <button id="ai-schema-btn" class="btn-secondary w-full text-sm">
+                                <i class="fas fa-edit mr-1"></i>Edit Schema
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Manual Extraction -->
+                <div class="border rounded-lg p-3 mt-4">
+                    <h3 class="font-medium mb-2">Manual Extraction</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm mb-1">CSS Selector</label>
+                            <input type="text" id="css-selector" class="form-input w-full" placeholder=".content, #main">
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-1">XPath</label>
+                            <input type="text" id="xpath-selector" class="form-input w-full" placeholder="//div[@class='content']">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Advanced Settings -->
+                <div class="border rounded-lg p-3 mt-4">
+                    <h3 class="font-medium mb-2">Advanced Settings</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-sm mb-1">Wait For Selector</label>
+                            <input type="text" id="wait-for-selector" class="form-input w-full" placeholder=".content-loaded">
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-1">User Agent</label>
+                            <input type="text" id="user-agent" class="form-input w-full" placeholder="Mozilla/5.0...">
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-1">Proxy URL</label>
+                            <input type="text" id="proxy-url" class="form-input w-full" placeholder="http://proxy:port">
+                        </div>
+                        <div>
+                            <label class="block text-sm mb-1">Session ID</label>
+                            <input type="text" id="session-id" class="form-input w-full" placeholder="session-123">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Progress Dashboard -->
+        <div id="progress-dashboard" class="bg-white rounded-xl shadow-lg p-6 mb-6" style="display: none;">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4"><i class="fas fa-chart-line mr-2 text-blue-600"></i>Progress Dashboard</h2>
+            <div class="w-full bg-gray-200 rounded-full h-3 mb-4"><div id="progress-bar" class="progress-bar bg-gradient-to-r from-blue-600 to-purple-600 h-3 rounded-full" style="width: 0%"></div></div>
+            <div class="grid grid-cols-2 md:grid-cols-6 gap-4 text-center mb-6">
+                <div class="metric-card rounded-lg p-3"><div class="text-2xl font-bold text-blue-600" id="total-urls">0</div><div class="text-xs text-gray-600">Discovered</div></div>
+                <div class="metric-card rounded-lg p-3"><div class="text-2xl font-bold text-green-600" id="completed-urls">0</div><div class="text-xs text-gray-600">Completed</div></div>
+                <div class="metric-card rounded-lg p-3"><div class="text-2xl font-bold text-red-600" id="failed-urls">0</div><div class="text-xs text-gray-600">Failed</div></div>
+                <div class="metric-card rounded-lg p-3"><div class="text-2xl font-bold text-yellow-600" id="blocks-encountered">0</div><div class="text-xs text-gray-600">Blocks</div></div>
+                <div class="metric-card rounded-lg p-3"><div class="text-2xl font-bold text-indigo-600" id="current-speed">0</div><div class="text-xs text-gray-600">req/min</div></div>
+                <div class="metric-card rounded-lg p-3"><div class="text-2xl font-bold text-purple-600" id="current-depth">0</div><div class="text-xs text-gray-600">Max Depth</div></div>
+            </div>
+            <div class="stats-chart"><canvas id="progressChart"></canvas></div>
+            <div id="current-status" class="bg-gray-50 rounded-lg p-4 border-l-4 border-blue-600"><span class="text-sm text-gray-700" id="status-message">Ready to start crawling.</span></div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results-section" class="bg-white rounded-xl shadow-lg p-6" style="display: none;">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold text-gray-800"><i class="fas fa-list-alt mr-2 text-green-600"></i>Results</h2>
+                <div class="flex items-center space-x-2">
+                    <button id="download-json" class="btn-secondary text-sm"><i class="fas fa-download mr-1"></i>JSON</button>
+                    <button id="download-csv" class="btn-secondary text-sm"><i class="fas fa-download mr-1"></i>CSV</button>
+                </div>
+            </div>
+            <div id="results-container" class="results-container space-y-4">
+                <div class="text-center text-gray-500 py-12"><div class="animate-bounce-slow"><i class="fas fa-search text-6xl mb-4 text-gray-300"></i></div><p>Start crawling to see results.</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Detail Modal -->
+    <div id="result-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 p-4 lg:p-12 hidden">
+        <div class="bg-white w-full h-full rounded-lg shadow-2xl flex flex-col">
+            <div class="p-3 border-b flex justify-between items-center bg-gray-50 rounded-t-lg">
+                <h3 class="font-semibold text-gray-800"><i class="fas fa-file-alt mr-2 text-blue-600"></i>Scraped Result Details</h3>
+                <button id="close-result-modal" class="text-gray-500 hover:text-red-600"><i class="fas fa-times-circle fa-lg"></i></button>
+            </div>
+            <div class="flex-grow overflow-y-auto p-6" id="result-modal-content">
+                <!-- Content will be populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- API Keys Modal -->
+    <div id="api-keys-modal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">API Keys</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Groq API Key</label>
+                    <input type="password" id="groq-api-key" class="form-input w-full" placeholder="gsk_...">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">OpenAI API Key</label>
+                    <input type="password" id="openai-api-key" class="form-input w-full" placeholder="sk-...">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Anthropic API Key</label>
+                    <input type="password" id="anthropic-api-key" class="form-input w-full" placeholder="sk-...">
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button class="btn-secondary close-modal">Cancel</button>
+                    <button id="save-api-keys" class="btn-primary">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Settings</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Concurrent Requests</label>
+                    <input type="number" id="concurrent-requests" class="form-input w-full" value="3" min="1" max="10">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Request Delay (ms)</label>
+                    <input type="number" id="request-delay" class="form-input w-full" value="1000" min="0">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Timeout (s)</label>
+                    <input type="number" id="timeout" class="form-input w-full" value="30" min="5">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Max Retries</label>
+                    <input type="number" id="max-retries" class="form-input w-full" value="3" min="0">
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button class="btn-secondary close-modal">Cancel</button>
+                    <button id="save-settings" class="btn-primary">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Schema Modal -->
+    <div id="ai-schema-modal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">AI Extraction Schema</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Schema (JSON)</label>
+                    <textarea id="ai-schema" class="form-input w-full" rows="6" placeholder='{"type": "object", "properties": {"title": {"type": "string"}, "content": {"type": "string"}}}'></textarea>
+                    <p class="text-xs text-gray-500 mt-1">Define the structure of data you want to extract</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Instruction</label>
+                    <textarea id="ai-instruction" class="form-input w-full" rows="3" placeholder="Extract the main content and title from the page"></textarea>
+                    <p class="text-xs text-gray-500 mt-1">Provide specific instructions for the AI model</p>
+                </div>
+                <div class="bg-blue-50 p-3 rounded text-sm">
+                    <p class="font-medium text-blue-800 mb-1">Provider Settings</p>
+                    <p>Provider: <span id="current-ai-provider">OpenAI</span></p>
+                    <p>Model: <span id="current-ai-model">GPT-3.5 Turbo</span></p>
+                    <p>Request Delay: <span id="current-ai-delay">1000ms</span></p>
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button class="btn-secondary close-modal">Cancel</button>
+                    <button id="save-ai-schema" class="btn-primary">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* General Styling & Layout */
+        .progress-bar { transition: width 0.3s ease; }
+        
+        /* Glassmorphism & Gradients */
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: white; font-weight: 500; padding: 0.75rem 1rem;
+            border-radius: 0.5rem; border: none; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-secondary { background: #6b7280; color: white; font-weight: 500; padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; cursor: pointer; transition: all 0.2s; }
+        .btn-secondary:hover:not(:disabled) { background: #4b5563; }
+        .btn-danger { background: #ef4444; color: white; font-weight: 500; padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; cursor: pointer; transition: all 0.2s; }
+        .btn-danger:hover:not(:disabled) { background: #dc2626; }
+        .btn-success { background: #10b981; color: white; font-weight: 500; padding: 0.75rem 1rem; border-radius: 0.5rem; border: none; cursor: pointer; transition: all 0.2s; }
+        .btn-success:hover:not(:disabled) { background: #059669; }
+        
+        .feature-toggle-btn {
+            background: #e5e7eb; color: #374151; font-weight: 500; padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem; border: 1px solid #d1d5db; cursor: pointer; transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+        .feature-toggle-btn:hover { background: #d1d5db; }
+        .feature-toggle-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+
+        /* Forms & Messages */
+        .form-input, .form-select {
+            width: 100%; padding: 0.5rem; border: 1px solid #d1d5db;
+            border-radius: 0.375rem; outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+            font-size: 0.875rem;
+        }
+        .form-input:focus, .form-select:focus {
+            border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .message { padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; }
+        .message.success { background: #dcfce7; border: 1px solid #bbf7d0; color: #166534; }
+        .message.error { background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; }
+        .message.warning { background: #fef3c7; border: 1px solid #fde68a; color: #92400e; }
+
+        /* Cards & Sections */
+        .crawl-card { 
+            transition: all 0.3s ease; 
+            page-break-inside: avoid;
+            cursor: pointer;
+        }
+        .crawl-card:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
+        }
+        .crawl-card.success { border-left: 4px solid #10B981; }
+        .crawl-card.failed { border-left: 4px solid #EF4444; }
+        .crawl-card.blocked { border-left: 4px solid #F59E0B; }
+        .crawl-card.processing { border-left: 4px solid #8B5CF6; }
+        .crawl-card.discovered { border-left: 4px solid #3B82F6; }
+        .metric-card {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        /* Animations */
+        .pulse-ring { animation: pulse-ring 1.5s ease-out infinite; }
+        @keyframes pulse-ring { 0% { transform: scale(.33); opacity: 1; } 80%, 100% { opacity: 0; transform: scale(1.5); } }
+        .animate-bounce-slow { animation: bounce 2s infinite; }
+        .stats-chart { height: 300px; margin-top: 1rem; }
+        
+        /* Modals */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; border-radius: 0.5rem; width: 90%; max-width: 600px; }
+        .close-modal { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close-modal:hover { color: black; }
+    </style>
+
+    <script>
+        /**
+         * Crawl4AI Comprehensive Demo
+         * A showcase of all Crawl4AI features with a clean, organized interface
+         */
+        class Crawl4AIDemo {
+            constructor() {
+                this.crawlResults = [];
+                this.progressChart = null;
+                this.activeFeatures = new Set();
+                this.apiKeys = {
+                    groq: '',
+                    openai: '',
+                    anthropic: ''
+                };
+                this.settings = {
+                    concurrentRequests: 3,
+                    requestDelay: 1000,
+                    timeout: 30,
+                    maxRetries: 3
+                };
+                this.aiSchema = {
+                    schema: '',
+                    instruction: ''
+                };
+                this.stats = {
+                    discovered: 0,
+                    completed: 0,
+                    failed: 0,
+                    blocks: 0,
+                    requests: 0,
+                    maxDepth: 0
+                };
+                this.startTime = null;
+                this.isCrawling = false;
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.initializeChart();
+                this.checkApiConnection();
+                this.loadFromLocalStorage();
+            }
+
+            setupEventListeners() {
+                // Main actions
+                document.getElementById('start-crawl-btn').addEventListener('click', () => this.startCrawl());
+                document.getElementById('clear-all-btn').addEventListener('click', () => this.clearAll());
+                document.getElementById('download-json').addEventListener('click', () => this.downloadResults('json'));
+                document.getElementById('download-csv').addEventListener('click', () => this.downloadResults('csv'));
+                
+                // Feature toggles
+                document.querySelectorAll('.feature-toggle-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const feature = e.target.closest('.feature-toggle-btn').dataset.feature;
+                        this.toggleFeature(feature);
+                    });
+                });
+                
+                // Accordion
+                document.getElementById('features-accordion-btn').addEventListener('click', () => this.toggleAccordion());
+                
+                // Modals
+                document.getElementById('api-keys-btn').addEventListener('click', () => this.openModal('api-keys-modal'));
+                document.getElementById('settings-btn').addEventListener('click', () => this.openModal('settings-modal'));
+                document.getElementById('ai-schema-btn').addEventListener('click', () => this.openModal('ai-schema-modal'));
+                document.getElementById('close-result-modal').addEventListener('click', () => this.closeResultModal());
+                
+                document.querySelectorAll('.close-modal').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const modal = e.target.closest('.modal') || document.getElementById(e.target.closest('button').dataset.modal);
+                        if (modal) this.closeModal(modal.id);
+                    });
+                });
+                
+                // Modal save buttons
+                document.getElementById('save-api-keys').addEventListener('click', () => this.saveApiKeys());
+                document.getElementById('save-settings').addEventListener('click', () => this.saveSettings());
+                document.getElementById('save-ai-schema').addEventListener('click', () => this.saveAISchema());
+                
+                // Close modals when clicking outside
+                window.addEventListener('click', (e) => {
+                    document.querySelectorAll('.modal').forEach(modal => {
+                        if (e.target === modal) {
+                            this.closeModal(modal.id);
+                        }
+                    });
+                    
+                    if (e.target === document.getElementById('result-modal')) {
+                        this.closeResultModal();
+                    }
+                });
+                
+                // AI provider selection updates
+                const aiProvider = document.getElementById('ai-provider');
+                const aiModel = document.getElementById('ai-model');
+                const aiDelay = document.getElementById('ai-request-delay');
+                
+                if (aiProvider) aiProvider.addEventListener('change', () => this.updateAIProviderInfo());
+                if (aiModel) aiModel.addEventListener('change', () => this.updateAIProviderInfo());
+                if (aiDelay) aiDelay.addEventListener('change', () => this.updateAIProviderInfo());
+            }
+
+            updateAIProviderInfo() {
+                // Update AI provider information in the schema modal
+                const provider = document.getElementById('ai-provider')?.value;
+                const model = document.getElementById('ai-model')?.value;
+                const delay = document.getElementById('ai-request-delay')?.value;
+                
+                if (!provider && !model && !delay) return; // Skip if elements don't exist
+                
+                // Update display in AI schema modal if it exists
+                const providerDisplay = document.getElementById('current-ai-provider');
+                const modelDisplay = document.getElementById('current-ai-model');
+                const delayDisplay = document.getElementById('current-ai-delay');
+                
+                if (providerDisplay) {
+                    const providerNames = {
+                        'openai': 'OpenAI',
+                        'groq': 'Groq',
+                        'anthropic': 'Anthropic'
+                    };
+                    providerDisplay.textContent = providerNames[provider] || provider;
+                }
+                
+                if (modelDisplay) {
+                    const modelNames = {
+                        'llama-3.1-70b-versatile': 'LLaMA 3.1 70B',
+                        'llama-3.1-8b-instant': 'LLaMA 3.1 8B',
+                        'llama-3.3-70b-specdec': 'LLaMA 3.3 70B SpecDec',
+                        'llama-3.3-70b-versatile': 'LLaMA 3.3 70B Versatile',
+                        'gemma2-9b-it': 'Gemma 2 9B',
+                        'mixtral-8x7b-32768': 'Mixtral 8x7B',
+                        'gpt-3.5-turbo': 'GPT-3.5 Turbo',
+                        'gpt-4': 'GPT-4',
+                        'gpt-4-turbo': 'GPT-4 Turbo',
+                        'claude-3-opus': 'Claude 3 Opus',
+                        'claude-3-sonnet': 'Claude 3 Sonnet'
+                    };
+                    modelDisplay.textContent = modelNames[model] || model;
+                }
+                
+                if (delayDisplay) {
+                    delayDisplay.textContent = `${delay}ms`;
+                }
+            }
+
+            toggleFeature(feature) {
+                const btn = document.querySelector(`[data-feature="${feature}"]`);
+                if (this.activeFeatures.has(feature)) {
+                    this.activeFeatures.delete(feature);
+                    btn.classList.remove('active');
+                    console.log(`Feature ${feature} deactivated`);
+                } else {
+                    this.activeFeatures.add(feature);
+                    btn.classList.add('active');
+                    console.log(`Feature ${feature} activated`);
+                }
+                console.log('Active features:', Array.from(this.activeFeatures));
+            }
+
+            toggleAccordion() {
+                const content = document.getElementById('features-accordion-content');
+                const icon = document.getElementById('accordion-icon');
+                if (content.style.display === 'none') {
+                    content.style.display = 'block';
+                    icon.style.transform = 'rotate(180deg)';
+                } else {
+                    content.style.display = 'none';
+                    icon.style.transform = 'rotate(0deg)';
+                }
+            }
+
+            openModal(modalId) {
+                document.getElementById(modalId).style.display = 'block';
+            }
+
+            closeModal(modalId) {
+                document.getElementById(modalId).style.display = 'none';
+            }
+
+            async checkApiConnection() {
+                try {
+                    const response = await fetch('http://localhost:8000/health');
+                    const data = await response.json();
+                    
+                    if (data.status === 'healthy') {
+                        document.getElementById('connection-status').innerHTML = '<i class="fas fa-check-circle text-green-500 mr-1"></i>Connected';
+                    } else {
+                        throw new Error('Crawl4AI service not responding correctly');
+                    }
+                } catch (error) {
+                    console.error('Crawl4AI connection error:', error);
+                    document.getElementById('connection-status').innerHTML = '<i class="fas fa-exclamation-circle text-red-500 mr-1"></i>Disconnected';
+                    this.showMessage('Error connecting to Crawl4AI service. Please make sure it is running on port 8000.', 'error');
+                }
+            }
+
+            initializeChart() {
+                const ctx = document.getElementById('progressChart').getContext('2d');
+                if (this.progressChart) this.progressChart.destroy();
+                this.progressChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [
+                            {
+                                label: 'Success',
+                                data: [],
+                                borderColor: '#10B981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                tension: 0.2,
+                                fill: true
+                            },
+                            {
+                                label: 'Failed',
+                                data: [],
+                                borderColor: '#EF4444',
+                                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                tension: 0.2,
+                                fill: true
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            async startCrawl() {
+                const prompt = document.getElementById('crawl-prompt').value.trim();
+                if (!prompt) {
+                    this.showMessage('Please enter a URL or crawling prompt.', 'warning');
+                    return;
+                }
+
+                // Determine if it's a URL or a description
+                const isUrl = prompt.startsWith('http://') || prompt.startsWith('https://');
+                
+                if (isUrl) {
+                    this.showMessage('Starting crawl...', 'warning');
+                    document.getElementById('start-crawl-btn').disabled = true;
+                    document.getElementById('start-crawl-btn').innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Crawling...';
+                    
+                    try {
+                        // Show progress dashboard
+                        document.getElementById('progress-dashboard').style.display = 'block';
+                        document.getElementById('results-section').style.display = 'block';
+                        
+                        // Reset stats
+                        this.stats = {
+                            discovered: 0,
+                            completed: 0,
+                            failed: 0,
+                            blocks: 0,
+                            requests: 0,
+                            maxDepth: 0
+                        };
+                        
+                        // Initialize crawl tree
+                        this.crawlTree = {};
+                        
+                        // Start timing
+                        this.startTime = Date.now();
+                        
+                        // Update UI
+                        this.updateStatsUI();
+                        document.getElementById('results-container').innerHTML = '<div class="text-center text-gray-500 py-4">Crawling in progress... Results will appear here as they are discovered.</div>';
+                        
+                        // Prepare crawl configuration
+                        const crawlConfig = {
+                            url: prompt,
+                            strategy: document.getElementById('crawl-strategy').value,
+                            extraction_strategy: document.getElementById('extraction-strategy').value,
+                            chunking_strategy: document.getElementById('chunking-strategy').value,
+                            enable_pagination: this.activeFeatures.has('pagination'),
+                            pagination_strategy: document.getElementById('pagination-strategy').value,
+                            enable_deep_crawl: this.activeFeatures.has('deep-crawl'),
+                            max_depth: parseInt(document.getElementById('max-depth').value) || 3,
+                            max_urls: parseInt(document.getElementById('max-urls').value) || 50,
+                            javascript_enabled: this.activeFeatures.has('javascript'),
+                            screenshot: this.activeFeatures.has('screenshot'),
+                            user_agent: document.getElementById('user-agent').value || "Mozilla/5.0 (compatible; Crawl4AI Demo Bot/1.0)",
+                            proxy: document.getElementById('proxy-url').value || null,
+                            session_id: document.getElementById('session-id').value || null,
+                            wait_for_selector: document.getElementById('wait-for-selector').value || null
+                        };
+
+                        // Add CSS selector if provided
+                        const cssSelector = document.getElementById('css-selector').value.trim();
+                        if (cssSelector) {
+                            crawlConfig.css_selector = cssSelector;
+                        }
+
+                        // Add XPath if provided
+                        const xpathSelector = document.getElementById('xpath-selector').value.trim();
+                        if (xpathSelector) {
+                            crawlConfig.xpath_selector = xpathSelector;
+                        }
+
+                        // Add AI extraction if enabled
+                        if (this.activeFeatures.has('ai-extraction')) {
+                            crawlConfig.extraction_strategy = 'llm_based';
+                            // Always send extraction schema for LLM-based extraction, even if empty
+                            try {
+                                crawlConfig.extraction_schema = {
+                                    schema: this.aiSchema.schema ? JSON.parse(this.aiSchema.schema) : {},
+                                    instruction: this.aiSchema.instruction || "Extract key information from the page",
+                                    api_key: this.apiKeys.groq || this.apiKeys.openai || this.apiKeys.anthropic,
+                                    provider: document.getElementById('ai-provider').value,
+                                    model: document.getElementById('ai-model').value,
+                                    delay: parseInt(document.getElementById('ai-request-delay').value) || 1000
+                                };
+                            } catch (e) {
+                                console.warn('Invalid AI schema JSON, using empty schema');
+                                crawlConfig.extraction_schema = {
+                                    schema: {},
+                                    instruction: "Extract key information from the page",
+                                    api_key: this.apiKeys.groq || this.apiKeys.openai || this.apiKeys.anthropic,
+                                    provider: document.getElementById('ai-provider').value,
+                                    model: document.getElementById('ai-model').value,
+                                    delay: parseInt(document.getElementById('ai-request-delay').value) || 1000
+                                };
+                            }
+                        }
+
+                        console.log('Active features:', Array.from(this.activeFeatures));
+                        console.log('Sending crawl request:', crawlConfig);
+
+                        // Use fetch with streaming for live results
+                        const response = await fetch('http://localhost:8000/crawl-stream', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(crawlConfig)
+                        });
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                        }
+
+                        if (!response.body) {
+                            throw new Error('Streaming not supported by browser');
+                        }
+
+                        const reader = response.body.getReader();
+                        const decoder = new TextDecoder();
+                        let buffer = '';
+
+                        try {
+                            let hasReceivedData = false;
+                            const startTime = Date.now();
+                            
+                            while (true) {
+                                const { done, value } = await reader.read();
+                                
+                                if (done) {
+                                    console.log('Stream finished normally');
+                                    // Stream finished
+                                    document.getElementById('start-crawl-btn').disabled = false;
+                                    document.getElementById('start-crawl-btn').innerHTML = '<i class="fas fa-play mr-2"></i>Start Crawling';
+                                    this.buildCrawlTree(this.crawlResults);
+                                    break;
+                                }
+
+                                // Mark that we've received data
+                                hasReceivedData = true;
+                                
+                                // Decode the chunk and add to buffer
+                                buffer += decoder.decode(value, { stream: true });
+                                
+                                // Process complete events (SSE format: data: {...}\n\n)
+                                const events = buffer.split('\n\n');
+                                buffer = events.pop(); // Keep incomplete event in buffer
+                                
+                                for (const event of events) {
+                                    if (event.startsWith('data: ')) {
+                                        try {
+                                            const data = JSON.parse(event.slice(6)); // Remove 'data: ' prefix
+                                            this.handleStreamEvent(data);
+                                        } catch (e) {
+                                            console.error('Error parsing stream data:', e, event);
+                                        }
+                                    }
+                                }
+                                
+                                // Timeout check - if no data received for 30 seconds, consider it stalled
+                                if (Date.now() - startTime > 30000 && !hasReceivedData) {
+                                    console.warn('Stream appears to be stalled, closing connection');
+                                    break;
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Stream reading error:', error);
+                            this.showMessage(`Streaming error: ${error.message}`, 'error');
+                            throw error;
+                        } finally {
+                            reader.releaseLock();
+                            // Always re-enable the button
+                            document.getElementById('start-crawl-btn').disabled = false;
+                            document.getElementById('start-crawl-btn').innerHTML = '<i class="fas fa-play mr-2"></i>Start Crawling';
+                        }
+
+                    } catch (error) {
+                        console.error('Crawl error:', error);
+                        this.showMessage(`Crawl failed: ${error.message}`, 'error');
+                        document.getElementById('start-crawl-btn').disabled = false;
+                        document.getElementById('start-crawl-btn').innerHTML = '<i class="fas fa-play mr-2"></i>Start Crawling';
+                    }
+                } else {
+                    this.showMessage('AI discovery feature coming soon. For now, please enter a valid URL.', 'warning');
+                }
+            }
+
+            handleStreamEvent(data) {
+                try {
+                    switch (data.type) {
+                        case 'started':
+                            this.showMessage(data.message, 'warning');
+                            break;
+                        case 'site_map':
+                            // Received initial site map data
+                            this.siteMapData = data.data;
+                            this.showMessage(`Site map discovered: ${data.data.sitemap_urls_count} URLs from sitemap`, 'success');
+                            // Display initial site structure
+                            this.displaySiteMap(data.data);
+                            break;
+                        case 'progress':
+                            // Update stats
+                            this.stats.discovered = data.total;
+                            this.stats.completed = data.completed;
+                            this.stats.crawled = data.crawled || this.stats.crawled;
+                            this.updateStatsUI();
+                            break;
+                        case 'result':
+                            // Add individual result to display
+                            this.displayCrawlResults([data.data]);
+                            // Update stats for this result
+                            if (data.data.success) {
+                                this.stats.completed++;
+                                // Log AI extraction results if available
+                                if (data.data.extracted_content) {
+                                    console.log('AI Extraction Result:', data.data.url, data.data.extracted_content);
+                                }
+                            } else {
+                                this.stats.failed++;
+                            }
+                            if (data.data.depth > this.stats.maxDepth) {
+                                this.stats.maxDepth = data.data.depth;
+                            }
+                            this.stats.discovered = Math.max(this.stats.discovered, this.stats.completed + this.stats.failed);
+                            this.updateStatsUI();
+                            break;
+                        case 'finished':
+                            this.showMessage(`Crawl completed! Processed ${data.total} URLs.`, 'success');
+                            document.getElementById('start-crawl-btn').disabled = false;
+                            document.getElementById('start-crawl-btn').innerHTML = '<i class="fas fa-play mr-2"></i>Start Crawling';
+                            // Build final crawl tree with complete site structure
+                            this.buildCrawlTree(this.crawlResults);
+                            break;
+                        case 'error':
+                            console.error('Server error during crawl:', data.message);
+                            this.showMessage(`Server error: ${data.message}`, 'error');
+                            document.getElementById('start-crawl-btn').disabled = false;
+                            document.getElementById('start-crawl-btn').innerHTML = '<i class="fas fa-play mr-2"></i>Start Crawling';
+                            break;
+                        case 'heartbeat':
+                            // Connection maintenance message, ignore
+                            console.debug('Received heartbeat from server');
+                            break;
+                        default:
+                            console.warn('Unknown stream event type:', data.type, data);
+                    }
+                } catch (error) {
+                    console.error('Error handling stream event:', error, data);
+                }
+            }
+
+            displayCrawlResults(results) {
+                // Add results to our collection
+                results.forEach(result => {
+                    // Check if we already have this result
+                    const existingIndex = this.crawlResults.findIndex(r => r.url === result.url);
+                    if (existingIndex !== -1) {
+                        // Update existing result
+                        this.crawlResults[existingIndex] = result;
+                    } else {
+                        // Add new result
+                        this.crawlResults.push(result);
+                    }
+                });
+                
+                const container = document.getElementById('results-container');
+                // Only clear container if it doesn't have the "in progress" message
+                if (!container.querySelector('.text-center')) {
+                    container.innerHTML = '';
+                }
+
+                // Display all results (existing + new)
+                this.crawlResults.forEach((result, index) => {
+                    // Check if card already exists
+                    let card = container.querySelector(`.crawl-card[data-url="${this.escapeHtml(result.url)}"]`);
+                    if (!card) {
+                        card = document.createElement('div');
+                        card.className = `crawl-card ${result.success ? 'success' : 'failed'} bg-white rounded-lg shadow p-4`;
+                        card.dataset.url = result.url;
+                        container.appendChild(card);
+                    }
+                    
+                    if (result.success) {
+                        // Check if this result has AI extraction data
+                        let aiExtractionContent = '';
+                        if (result.extracted_content) {
+                            aiExtractionContent = `
+                                <div class="mt-3 p-3 bg-blue-50 rounded-lg">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="font-medium text-blue-800 text-sm">AI Extraction Results</h4>
+                                        <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Live</span>
+                                    </div>
+                                    <div class="text-xs text-gray-700 max-h-32 overflow-y-auto">
+                                        ${typeof result.extracted_content === 'string' 
+                                            ? this.escapeHtml(result.extracted_content.substring(0, 200)) + (result.extracted_content.length > 200 ? '...' : '')
+                                            : `<pre class="whitespace-pre-wrap">${this.escapeHtml(JSON.stringify(result.extracted_content, null, 2).substring(0, 200))}${JSON.stringify(result.extracted_content, null, 2).length > 200 ? '...' : ''}</pre>`
+                                        }
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        
+                        card.innerHTML = `
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-semibold text-blue-700">${result.title || 'Untitled Page'}</p>
+                                    <a href="${result.url}" target="_blank" class="text-xs text-gray-500 hover:underline">${this.truncateUrl(result.url, 70)}</a>
+                                </div>
+                                <span class="text-xs text-gray-500">Depth: ${result.depth || 0}</span>
+                            </div>
+                            <div class="mt-2 text-xs text-gray-600">
+                                ${result.performance_metrics ? `
+                                    <span><i class="fas fa-clock mr-1"></i>${result.performance_metrics.response_time}ms</span>
+                                ` : ''}
+                                ${result.links && result.links.length ? `
+                                    <span class="ml-2"><i class="fas fa-link mr-1"></i>${result.links.length} links</span>
+                                ` : ''}
+                                ${result.media && result.media.length ? `
+                                    <span class="ml-2"><i class="fas fa-image mr-1"></i>${result.media.length} media</span>
+                                ` : ''}
+                            </div>
+                            ${aiExtractionContent}
+                            <div class="mt-3">
+                                <div class="extraction-preview bg-gray-50 p-3 rounded max-h-32 overflow-y-auto text-sm">
+                                    ${this.escapeHtml((result.markdown?.raw_markdown || result.markdown || '').substring(0, 300)) + ((result.markdown?.raw_markdown || result.markdown || '').length > 300 ? '...' : '')}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        card.innerHTML = `
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-semibold text-red-700">Crawl Failed</p>
+                                    <a href="${result.url}" target="_blank" class="text-xs text-gray-500 hover:underline">${this.truncateUrl(result.url, 70)}</a>
+                                </div>
+                            </div>
+                            <div class="mt-2 text-red-600">
+                                <p><strong>Error:</strong> ${this.escapeHtml(result.error || 'Unknown error')}</p>
+                            </div>
+                        `;
+                    }
+                    
+                    // Add click event to open modal
+                    card.addEventListener('click', () => this.openResultModalByURL(result.url));
+                });
+            }
+
+            displaySiteMap(siteMapData) {
+                // Display initial site map information
+                const container = document.createElement('div');
+                container.className = 'mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200';
+                container.innerHTML = `
+                    <h3 class="font-semibold text-blue-800 mb-2">Site Map Discovery</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div class="bg-white p-3 rounded">
+                            <div class="font-medium">Base URL</div>
+                            <div class="text-gray-600 truncate">${this.truncateUrl(siteMapData.base_url, 40)}</div>
+                        </div>
+                        <div class="bg-white p-3 rounded">
+                            <div class="font-medium">Sitemap Available</div>
+                            <div class="text-gray-600">${siteMapData.sitemap_available ? 'Yes' : 'No'}</div>
+                        </div>
+                        <div class="bg-white p-3 rounded">
+                            <div class="font-medium">Sitemap URLs</div>
+                            <div class="text-gray-600">${siteMapData.sitemap_urls_count}</div>
+                        </div>
+                    </div>
+                `;
+                
+                // Add to results section
+                const resultsSection = document.getElementById('results-section');
+                if (resultsSection) {
+                    // Remove existing site map if present
+                    const existingSiteMap = resultsSection.querySelector('.site-map-container');
+                    if (existingSiteMap) {
+                        existingSiteMap.remove();
+                    }
+                    container.classList.add('site-map-container');
+                    resultsSection.insertBefore(container, resultsSection.firstChild);
+                }
+            }
+
+            buildCrawlTree(results) {
+                // Build a single, comprehensive visual crawl tree/graph
+                if (results.length === 0) return;
+                
+                // Group results by source and depth
+                const categorizedResults = {
+                    direct: [],  // Root URL (depth 0)
+                    sitemap: [],  // Sitemap URLs (depth 1)
+                    deep_crawl: []  // Deep crawled URLs (depth > 1)
+                };
+                
+                const depthGroups = {};
+                const allUrls = new Set(); // Track all discovered URLs
+                
+                results.forEach(result => {
+                    const source = result.source || 'direct';
+                    const depth = result.depth || 0;
+                    
+                    // Categorize by source
+                    if (!categorizedResults[source]) {
+                        categorizedResults[source] = [];
+                    }
+                    categorizedResults[source].push(result);
+                    
+                    // Group by depth
+                    if (!depthGroups[depth]) {
+                        depthGroups[depth] = [];
+                    }
+                    depthGroups[depth].push(result);
+                    
+                    // Track all URLs
+                    allUrls.add(result.url);
+                });
+                
+                // Create a single comprehensive visual tree
+                const container = document.createElement('div');
+                container.className = 'mt-6 p-4 bg-gray-50 rounded-lg';
+                container.innerHTML = '<h3 class="font-semibold text-gray-800 mb-3">Crawl Visualization Graph</h3>';
+                
+                // Create a visual graph representation
+                const graphContainer = document.createElement('div');
+                graphContainer.className = 'overflow-x-auto pb-4';
+                
+                // Create SVG container for the graph
+                const svgNS = "http://www.w3.org/2000/svg";
+                const svg = document.createElementNS(svgNS, "svg");
+                svg.setAttribute("width", "100%");
+                svg.setAttribute("height", "300");
+                svg.setAttribute("viewBox", "0 0 800 300");
+                svg.classList.add('border', 'border-gray-200', 'rounded');
+                
+                // Draw nodes for each depth level
+                const depths = Object.keys(depthGroups).sort((a, b) => parseInt(a) - parseInt(b));
+                const nodeRadius = 20;
+                const verticalSpacing = 60;
+                const horizontalSpacing = 800 / Math.max(depths.length, 1);
+                
+                depths.forEach((depth, depthIndex) => {
+                    const depthResults = depthGroups[depth];
+                    const y = 50 + depthIndex * verticalSpacing;
+                    const nodesInRow = Math.min(depthResults.length, 8); // Limit to 8 nodes per row for visibility
+                    const startX = (800 - (nodesInRow - 1) * horizontalSpacing) / 2;
+                    
+                    // Draw connections to previous level (except for depth 0)
+                    if (depthIndex > 0) {
+                        const prevDepth = depths[depthIndex - 1];
+                        const prevDepthResults = depthGroups[prevDepth];
+                        const prevY = 50 + (depthIndex - 1) * verticalSpacing;
+                        const prevNodesInRow = Math.min(prevDepthResults.length, 8);
+                        const prevStartX = (800 - (prevNodesInRow - 1) * horizontalSpacing) / 2;
+                        
+                        // Draw lines from each node in previous level to nodes in current level
+                        for (let i = 0; i < Math.min(prevNodesInRow, 3); i++) { // Limit connections for clarity
+                            const prevX = prevStartX + i * horizontalSpacing;
+                            const currentX = startX + (i % nodesInRow) * horizontalSpacing;
+                            
+                            const line = document.createElementNS(svgNS, "line");
+                            line.setAttribute("x1", prevX);
+                            line.setAttribute("y1", prevY);
+                            line.setAttribute("x2", currentX);
+                            line.setAttribute("y2", y);
+                            line.setAttribute("stroke", "#cbd5e1");
+                            line.setAttribute("stroke-width", "2");
+                            svg.appendChild(line);
+                        }
+                    }
+                    
+                    // Draw nodes for current depth
+                    for (let i = 0; i < nodesInRow; i++) {
+                        const result = depthResults[i];
+                        const x = startX + i * horizontalSpacing;
+                        
+                        // Draw circle node
+                        const circle = document.createElementNS(svgNS, "circle");
+                        circle.setAttribute("cx", x);
+                        circle.setAttribute("cy", y);
+                        circle.setAttribute("r", nodeRadius);
+                        circle.setAttribute("fill", result.success ? "#10b981" : "#ef4444"); // Green for success, red for failure
+                        circle.setAttribute("stroke", "#ffffff");
+                        circle.setAttribute("stroke-width", "2");
+                        svg.appendChild(circle);
+                        
+                        // Draw depth label inside circle
+                        const text = document.createElementNS(svgNS, "text");
+                        text.setAttribute("x", x);
+                        text.setAttribute("y", y + 5);
+                        text.setAttribute("text-anchor", "middle");
+                        text.setAttribute("font-size", "12");
+                        text.setAttribute("fill", "#ffffff");
+                        text.setAttribute("font-family", "sans-serif");
+                        text.textContent = depth;
+                        svg.appendChild(text);
+                        
+                        // Draw count label below circle
+                        const countText = document.createElementNS(svgNS, "text");
+                        countText.setAttribute("x", x);
+                        countText.setAttribute("y", y + nodeRadius + 20);
+                        countText.setAttribute("text-anchor", "middle");
+                        countText.setAttribute("font-size", "10");
+                        countText.setAttribute("fill", "#64748b");
+                        countText.setAttribute("font-family", "sans-serif");
+                        countText.textContent = `${i + 1}/${depthResults.length}`;
+                        svg.appendChild(countText);
+                    }
+                    
+                    // Draw depth label
+                    const depthLabel = document.createElementNS(svgNS, "text");
+                    depthLabel.setAttribute("x", 20);
+                    depthLabel.setAttribute("y", y + 5);
+                    depthLabel.setAttribute("font-size", "14");
+                    depthLabel.setAttribute("fill", "#475569");
+                    depthLabel.setAttribute("font-family", "sans-serif");
+                    depthLabel.setAttribute("font-weight", "bold");
+                    depthLabel.textContent = `Depth ${depth}`;
+                    svg.appendChild(depthLabel);
+                });
+                
+                graphContainer.appendChild(svg);
+                
+                // Create legend
+                const legend = document.createElement('div');
+                legend.className = 'flex flex-wrap gap-4 mt-4 text-sm';
+                legend.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 rounded-full bg-green-500 mr-2"></div>
+                        <span>Successful Crawls</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 rounded-full bg-red-500 mr-2"></div>
+                        <span>Failed Crawls</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 rounded border-2 border-gray-300 mr-2"></div>
+                        <span>Lines show relationships</span>
+                    </div>
+                `;
+                
+                // Create summary statistics
+                const summaryContainer = document.createElement('div');
+                summaryContainer.className = 'grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 text-sm';
+                
+                const totalCrawled = results.length;
+                const successCount = results.filter(r => r.success).length;
+                const failCount = results.filter(r => !r.success).length;
+                const uniqueSources = Object.keys(categorizedResults).length;
+                
+                summaryContainer.innerHTML = `
+                    <div class="bg-white p-3 rounded border">
+                        <div class="font-medium text-gray-500">Total Crawled</div>
+                        <div class="text-xl font-bold">${totalCrawled}</div>
+                    </div>
+                    <div class="bg-white p-3 rounded border">
+                        <div class="font-medium text-gray-500">Successful</div>
+                        <div class="text-xl font-bold text-green-600">${successCount}</div>
+                    </div>
+                    <div class="bg-white p-3 rounded border">
+                        <div class="font-medium text-gray-500">Failed</div>
+                        <div class="text-xl font-bold text-red-600">${failCount}</div>
+                    </div>
+                    <div class="bg-white p-3 rounded border">
+                        <div class="font-medium text-gray-500">Max Depth</div>
+                        <div class="text-xl font-bold">${Math.max(...Object.keys(depthGroups).map(d => parseInt(d)))}</div>
+                    </div>
+                `;
+                
+                // Create detailed breakdown by depth
+                const breakdownContainer = document.createElement('div');
+                breakdownContainer.className = 'mt-4';
+                breakdownContainer.innerHTML = '<h4 class="font-semibold text-gray-800 mb-2">Crawl Depth Breakdown</h4>';
+                
+                const breakdownGrid = document.createElement('div');
+                breakdownGrid.className = 'grid grid-cols-1 md:grid-cols-3 gap-4';
+                
+                // Group results by actual depth for accurate labeling
+                const depthBreakdown = {};
+                results.forEach(result => {
+                    const depth = result.depth || 0;
+                    if (!depthBreakdown[depth]) {
+                        depthBreakdown[depth] = { success: 0, failed: 0, total: 0 };
+                    }
+                    depthBreakdown[depth].total++;
+                    if (result.success) {
+                        depthBreakdown[depth].success++;
+                    } else {
+                        depthBreakdown[depth].failed++;
+                    }
+                });
+                
+                // Create depth cards
+                Object.keys(depthBreakdown).sort((a, b) => parseInt(a) - parseInt(b)).forEach(depth => {
+                    const stats = depthBreakdown[depth];
+                    const depthLabels = {
+                        '0': 'Root Page',
+                        '1': 'First Level',
+                        '2': 'Second Level',
+                        '3': 'Third Level',
+                        '4': 'Fourth Level',
+                        '5': 'Fifth Level'
+                    };
+                    const label = depthLabels[depth] || `Depth ${depth}`;
+                    const colors = ['blue', 'green', 'purple', 'yellow', 'indigo', 'pink'];
+                    const color = colors[parseInt(depth) % colors.length] || 'gray';
+                    
+                    const depthDiv = document.createElement('div');
+                    depthDiv.className = `p-3 rounded border-l-4 border-${color}-500 bg-white`;
+                    depthDiv.innerHTML = `
+                        <div class="flex items-center mb-2">
+                            <span class="w-8 h-8 rounded-full bg-${color}-100 text-${color}-800 flex items-center justify-center mr-2">
+                                <i class="fas fa-sitemap"></i>
+                            </span>
+                            <span class="font-semibold">${label}</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 text-xs">
+                            <div class="bg-green-50 p-2 rounded text-center">
+                                <div class="font-medium">${stats.success}</div>
+                                <div class="text-green-700">Success</div>
+                            </div>
+                            <div class="bg-red-50 p-2 rounded text-center">
+                                <div class="font-medium">${stats.failed}</div>
+                                <div class="text-red-700">Failed</div>
+                            </div>
+                            <div class="bg-blue-50 p-2 rounded text-center">
+                                <div class="font-medium">${stats.total}</div>
+                                <div class="text-blue-700">Total</div>
+                            </div>
+                        </div>
+                    `;
+                    breakdownGrid.appendChild(depthDiv);
+                });
+                
+                breakdownContainer.appendChild(breakdownGrid);
+                
+                // Append all elements to container
+                container.appendChild(graphContainer);
+                container.appendChild(legend);
+                container.appendChild(summaryContainer);
+                container.appendChild(breakdownContainer);
+                
+                // Add tree to results section and remove any existing trees
+                const resultsSection = document.getElementById('results-section');
+                if (resultsSection) {
+                    // Remove all existing tree containers
+                    const existingTrees = resultsSection.querySelectorAll('.crawl-tree-container, .complete-crawl-tree');
+                    existingTrees.forEach(tree => tree.remove());
+                    
+                    container.classList.add('crawl-tree-container');
+                    resultsSection.appendChild(container);
+                }
+            }
+
+            openResultModalByURL(url) {
+                // Find result by URL
+                const result = this.crawlResults.find(r => r.url === url);
+                if (!result) return;
+                
+                const modal = document.getElementById('result-modal');
+                const content = document.getElementById('result-modal-content');
+                
+                if (result.success) {
+                    // Format AI extraction content for display
+                    let aiExtractionSection = '';
+                    if (result.extracted_content) {
+                        let extractedContentDisplay = '';
+                        if (typeof result.extracted_content === 'string') {
+                            extractedContentDisplay = `<pre class="whitespace-pre-wrap text-sm">${this.escapeHtml(result.extracted_content)}</pre>`;
+                        } else if (typeof result.extracted_content === 'object') {
+                            extractedContentDisplay = `<pre class="whitespace-pre-wrap text-sm">${this.escapeHtml(JSON.stringify(result.extracted_content, null, 2))}</pre>`;
+                        } else {
+                            extractedContentDisplay = `<p class="text-sm">${this.escapeHtml(String(result.extracted_content))}</p>`;
+                        }
+                        
+                        aiExtractionSection = `
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-800 mb-2 flex items-center">
+                                <i class="fas fa-brain mr-2 text-blue-600"></i>AI Extraction Results
+                            </h3>
+                            <div class="bg-blue-50 rounded-lg p-4">
+                                ${extractedContentDisplay}
+                            </div>
+                        </div>
+                        `;
+                    }
+                    
+                    content.innerHTML = `
+                        <div class="mb-6">
+                            <h2 class="text-2xl font-bold text-gray-800 mb-2">${result.title || 'Untitled Page'}</h2>
+                            <a href="${result.url}" target="_blank" class="text-blue-600 hover:underline">${result.url}</a>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-blue-50 rounded-lg p-4">
+                                <h3 class="font-semibold text-blue-800 mb-2">Metadata</h3>
+                                <div class="text-sm">
+                                    ${result.performance_metrics ? `
+                                        <p><strong>Response Time:</strong> ${result.performance_metrics.response_time} ms</p>
+                                        <p><strong>Content Size:</strong> ${result.performance_metrics.content_size} bytes</p>
+                                        <p><strong>Markdown Size:</strong> ${result.performance_metrics.markdown_size} characters</p>
+                                    ` : ''}
+                                    <p><strong>Links Found:</strong> ${result.links ? result.links.length : 0}</p>
+                                    <p><strong>Media Assets:</strong> ${result.media ? result.media.length : 0}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-green-50 rounded-lg p-4">
+                                <h3 class="font-semibold text-green-800 mb-2">Content Stats</h3>
+                                <div class="text-sm">
+                                    <p><strong>Markdown Length:</strong> ${result.markdown ? (result.markdown.raw_markdown ? result.markdown.raw_markdown.length : result.markdown.length) : 0} characters</p>
+                                    ${result.chunks ? `<p><strong>Content Chunks:</strong> ${result.chunks.length}</p>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        ${aiExtractionSection}
+                        
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-800 mb-2">Extracted Content</h3>
+                            <div class="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto">
+                                <pre class="whitespace-pre-wrap text-sm">${this.escapeHtml(result.markdown?.raw_markdown || result.markdown || 'No content extracted')}</pre>
+                            </div>
+                        </div>
+                        
+                        ${result.extracted_content && typeof result.extracted_content !== 'string' && typeof result.extracted_content !== 'object' ? `
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-800 mb-2">Structured Data</h3>
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <pre class="whitespace-pre-wrap text-sm">${JSON.stringify(result.extracted_content, null, 2)}</pre>
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        ${result.chunks ? `
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-800 mb-2">Content Chunks</h3>
+                            <div class="space-y-4">
+                                ${result.chunks.map((chunk, index) => `
+                                    <div class="bg-gray-50 rounded-lg p-4">
+                                        <h4 class="font-medium text-gray-700 mb-2">Chunk ${index + 1}</h4>
+                                        <p class="text-sm">${this.escapeHtml(chunk.content)}</p>
+                                        ${chunk.metadata ? `<p class="text-xs text-gray-500 mt-2">Metadata: ${JSON.stringify(chunk.metadata)}</p>` : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        ${result.links && result.links.length > 0 ? `
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-800 mb-2">Links Found (${result.links.length})</h3>
+                            <div class="bg-gray-50 rounded-lg p-4 max-h-60 overflow-y-auto">
+                                <ul class="list-disc pl-5 space-y-1">
+                                    ${result.links.map(link => `<li><a href="${link}" target="_blank" class="text-blue-600 hover:underline">${this.escapeHtml(link)}</a></li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        ${result.media && result.media.length > 0 ? `
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-800 mb-2">Media Found (${result.media.length})</h3>
+                            <div class="bg-gray-50 rounded-lg p-4 max-h-60 overflow-y-auto">
+                                <ul class="list-disc pl-5 space-y-1">
+                                    ${result.media.map(media => `<li><a href="${media}" target="_blank" class="text-blue-600 hover:underline">${this.escapeHtml(media)}</a></li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        ${result.screenshot_url ? `
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-800 mb-2">Screenshot</h3>
+                            <img src="${result.screenshot_url}" alt="Page screenshot" class="max-w-full h-auto rounded">
+                        </div>
+                        ` : ''}
+                    `;
+                } else {
+                    content.innerHTML = `
+                        <div class="mb-6">
+                            <h2 class="text-2xl font-bold text-red-700 mb-2">Crawl Failed</h2>
+                            <a href="${result.url}" target="_blank" class="text-blue-600 hover:underline">${result.url}</a>
+                        </div>
+                        
+                        <div class="bg-red-50 rounded-lg p-4">
+                            <h3 class="font-semibold text-red-800 mb-2">Error Details</h3>
+                            <p class="text-sm">${this.escapeHtml(result.error || 'Unknown error occurred')}</p>
+                        </div>
+                    `;
+                }
+                
+                modal.classList.remove('hidden');
+            }
+
+            openResultModal(index) {
+                const result = this.crawlResults[index];
+                const modal = document.getElementById('result-modal');
+                const content = document.getElementById('result-modal-content');
+                
+                if (result.success) {
+                    content.innerHTML = `
+                        <div class="mb-6">
+                            <h2 class="text-2xl font-bold text-gray-800 mb-2">${result.title || 'Untitled Page'}</h2>
+                            <a href="${result.url}" target="_blank" class="text-blue-600 hover:underline">${result.url}</a>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-blue-50 rounded-lg p-4">
+                                <h3 class="font-semibold text-blue-800 mb-2">Metadata</h3>
+                                <div class="text-sm">
+                                    ${result.performance_metrics ? `
+                                        <p><strong>Response Time:</strong> ${result.performance_metrics.response_time} ms</p>
+                                        <p><strong>Content Size:</strong> ${result.performance_metrics.content_size} bytes</p>
+                                        <p><strong>Markdown Size:</strong> ${result.performance_metrics.markdown_size} characters</p>
+                                    ` : ''}
+                                    <p><strong>Links Found:</strong> ${result.links ? result.links.length : 0}</p>
+                                    <p><strong>Media Assets:</strong> ${result.media ? result.media.length : 0}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-green-50 rounded-lg p-4">
+                                <h3 class="font-semibold text-green-800 mb-2">Content Stats</h3>
+                                <div class="text-sm">
+                                    <p><strong>Markdown Length:</strong> ${result.markdown ? (result.markdown.raw_markdown ? result.markdown.raw_markdown.length : result.markdown.length) : 0} characters</p>
+                                    ${result.chunks ? `<p><strong>Content Chunks:</strong> ${result.chunks.length}</p>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-800 mb-2">Extracted Content</h3>
+                            <div class="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto">
+                                <pre class="whitespace-pre-wrap text-sm">${this.escapeHtml(result.markdown?.raw_markdown || result.markdown || 'No content extracted')}</pre>
+                            </div>
+                        </div>
+                        
+                        ${result.extracted_content ? `
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-800 mb-2">Structured Data</h3>
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <pre class="whitespace-pre-wrap text-sm">${JSON.stringify(result.extracted_content, null, 2)}</pre>
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        ${result.chunks ? `
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-800 mb-2">Content Chunks</h3>
+                            <div class="space-y-4">
+                                ${result.chunks.map((chunk, index) => `
+                                    <div class="bg-gray-50 rounded-lg p-4">
+                                        <h4 class="font-medium text-gray-700 mb-2">Chunk ${index + 1}</h4>
+                                        <p class="text-sm">${this.escapeHtml(chunk.content)}</p>
+                                        ${chunk.metadata ? `<p class="text-xs text-gray-500 mt-2">Metadata: ${JSON.stringify(chunk.metadata)}</p>` : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        ${result.links && result.links.length > 0 ? `
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-800 mb-2">Links Found (${result.links.length})</h3>
+                            <div class="bg-gray-50 rounded-lg p-4 max-h-60 overflow-y-auto">
+                                <ul class="list-disc pl-5 space-y-1">
+                                    ${result.links.map(link => `<li><a href="${link}" target="_blank" class="text-blue-600 hover:underline">${this.escapeHtml(link)}</a></li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        ${result.media && result.media.length > 0 ? `
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-800 mb-2">Media Found (${result.media.length})</h3>
+                            <div class="bg-gray-50 rounded-lg p-4 max-h-60 overflow-y-auto">
+                                <ul class="list-disc pl-5 space-y-1">
+                                    ${result.media.map(media => `<li><a href="${media}" target="_blank" class="text-blue-600 hover:underline">${this.escapeHtml(media)}</a></li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        ${result.screenshot_url ? `
+                        <div class="mb-6">
+                            <h3 class="font-semibold text-gray-800 mb-2">Screenshot</h3>
+                            <img src="${result.screenshot_url}" alt="Page screenshot" class="max-w-full h-auto rounded">
+                        </div>
+                        ` : ''}
+                    `;
+                } else {
+                    content.innerHTML = `
+                        <div class="mb-6">
+                            <h2 class="text-2xl font-bold text-red-700 mb-2">Crawl Failed</h2>
+                            <a href="${result.url}" target="_blank" class="text-blue-600 hover:underline">${result.url}</a>
+                        </div>
+                        
+                        <div class="bg-red-50 rounded-lg p-4">
+                            <h3 class="font-semibold text-red-800 mb-2">Error Details</h3>
+                            <p class="text-sm">${this.escapeHtml(result.error || 'Unknown error occurred')}</p>
+                        </div>
+                    `;
+                }
+                
+                modal.classList.remove('hidden');
+            }
+
+            closeResultModal() {
+                document.getElementById('result-modal').classList.add('hidden');
+            }
+
+            updateStatsUI() {
+                document.getElementById('total-urls').textContent = this.stats.discovered;
+                document.getElementById('completed-urls').textContent = this.stats.completed;
+                document.getElementById('failed-urls').textContent = this.stats.failed;
+                document.getElementById('blocks-encountered').textContent = this.stats.blocks;
+                document.getElementById('current-depth').textContent = this.stats.maxDepth;
+                
+                // Calculate requests per minute
+                if (this.startTime) {
+                    const elapsedMinutes = (Date.now() - this.startTime) / 60000;
+                    const rpm = elapsedMinutes > 0 ? Math.round(this.stats.requests / elapsedMinutes) : 0;
+                    document.getElementById('current-speed').textContent = rpm;
+                }
+                
+                // Update progress bar
+                const total = this.stats.discovered;
+                const processed = this.stats.completed + this.stats.failed;
+                const progress = total > 0 ? Math.round((processed / total) * 100) : 0;
+                document.getElementById('progress-bar').style.width = `${progress}%`;
+                
+                // Update status message
+                document.getElementById('status-message').textContent = 
+                    this.isCrawling ? `Crawling... ${this.stats.completed} completed, ${this.stats.failed} failed` : 'Crawling completed.';
+                
+                // Update chart
+                if (this.progressChart) {
+                    const now = new Date();
+                    const timeLabel = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+                    
+                    this.progressChart.data.labels.push(timeLabel);
+                    this.progressChart.data.datasets[0].data.push(this.stats.completed);
+                    this.progressChart.data.datasets[1].data.push(this.stats.failed);
+                    
+                    // Keep only the last 20 data points
+                    if (this.progressChart.data.labels.length > 20) {
+                        this.progressChart.data.labels.shift();
+                        this.progressChart.data.datasets[0].data.shift();
+                        this.progressChart.data.datasets[1].data.shift();
+                    }
+                    
+                    this.progressChart.update();
+                }
+            }
+
+            updateStatsFromResults(results) {
+                // Update stats based on results
+                this.stats.discovered = results.length;
+                this.stats.completed = results.filter(r => r.success).length;
+                this.stats.failed = results.filter(r => !r.success).length;
+                this.stats.maxDepth = Math.max(...results.map(r => r.depth || 0));
+                this.updateStatsUI();
+            }
+
+            truncateUrl(url, len = 60) {
+                return url.length > len ? url.slice(0, len) + '...' : url;
+            }
+
+            escapeHtml(unsafe) {
+                return unsafe?.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") || '';
+            }
+
+            showMessage(message, type) {
+                const container = document.getElementById('message-container');
+                const div = document.createElement('div');
+                div.className = `message ${type} flex justify-between items-center`;
+                div.innerHTML = `<span>${message}</span><button class="font-bold" onclick="this.parentElement.remove()">&times;</button>`;
+                container.appendChild(div);
+                setTimeout(() => div.remove(), 5000);
+            }
+
+            clearAll() {
+                if (confirm('Are you sure you want to clear all data?')) {
+                    document.getElementById('crawl-prompt').value = '';
+                    document.getElementById('results-container').innerHTML = '<div class="text-center text-gray-500 py-12"><div class="animate-bounce-slow"><i class="fas fa-search text-6xl mb-4 text-gray-300"></i></div><p>All data cleared.</p></div>';
+                    
+                    // Reset stats
+                    this.stats = {
+                        discovered: 0,
+                        completed: 0,
+                        failed: 0,
+                        blocks: 0,
+                        requests: 0,
+                        maxDepth: 0
+                    };
+                    this.updateStatsUI();
+                    
+                    // Reset UI sections
+                    document.getElementById('progress-dashboard').style.display = 'none';
+                    document.getElementById('results-section').style.display = 'none';
+                    
+                    this.initializeChart();
+                    this.showMessage('All data cleared.', 'success');
+                }
+            }
+
+            downloadResults(format) {
+                if (this.crawlResults.length === 0) {
+                    this.showMessage('No results to download.', 'warning');
+                    return;
+                }
+
+                if (format === 'json') {
+                    const dataStr = JSON.stringify(this.crawlResults, null, 2);
+                    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                    const url = URL.createObjectURL(dataBlob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'crawl-results.json';
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    this.showMessage('Results downloaded as JSON.', 'success');
+                } else if (format === 'csv') {
+                    // Simple CSV conversion
+                    let csvContent = 'URL,Title,Status,Error,Response Time (ms),Depth,Links Count,Media Count\n';
+                    this.crawlResults.forEach(result => {
+                        const responseTime = result.performance_metrics ? result.performance_metrics.response_time : '';
+                        const depth = result.depth || 0;
+                        const linksCount = result.links ? result.links.length : 0;
+                        const mediaCount = result.media ? result.media.length : 0;
+                        csvContent += `"${result.url}","${result.title || ''}","${result.success ? 'Success' : 'Failed'}","${result.error || ''}","${responseTime}","${depth}","${linksCount}","${mediaCount}"\n`;
+                    });
+                    const dataBlob = new Blob([csvContent], {type: 'text/csv'});
+                    const url = URL.createObjectURL(dataBlob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'crawl-results.csv';
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    this.showMessage('Results downloaded as CSV.', 'success');
+                }
+            }
+
+            saveApiKeys() {
+                this.apiKeys.groq = document.getElementById('groq-api-key').value;
+                this.apiKeys.openai = document.getElementById('openai-api-key').value;
+                this.apiKeys.anthropic = document.getElementById('anthropic-api-key').value;
+                this.saveToLocalStorage();
+                this.closeModal('api-keys-modal');
+                this.showMessage('API keys saved.', 'success');
+            }
+
+            saveSettings() {
+                this.settings.concurrentRequests = parseInt(document.getElementById('concurrent-requests').value);
+                this.settings.requestDelay = parseInt(document.getElementById('request-delay').value);
+                this.settings.timeout = parseInt(document.getElementById('timeout').value);
+                this.settings.maxRetries = parseInt(document.getElementById('max-retries').value);
+                this.saveToLocalStorage();
+                this.closeModal('settings-modal');
+                this.showMessage('Settings saved.', 'success');
+            }
+
+            saveAISchema() {
+                this.aiSchema.schema = document.getElementById('ai-schema').value;
+                this.aiSchema.instruction = document.getElementById('ai-instruction').value;
+                this.saveToLocalStorage();
+                this.closeModal('ai-schema-modal');
+                this.showMessage('AI schema saved.', 'success');
+            }
+
+            saveToLocalStorage() {
+                localStorage.setItem('crawl4ai-apikeys', JSON.stringify(this.apiKeys));
+                localStorage.setItem('crawl4ai-settings', JSON.stringify(this.settings));
+                localStorage.setItem('crawl4ai-aischema', JSON.stringify(this.aiSchema));
+            }
+
+            loadFromLocalStorage() {
+                const apiKeys = localStorage.getItem('crawl4ai-apikeys');
+                if (apiKeys) {
+                    this.apiKeys = JSON.parse(apiKeys);
+                    document.getElementById('groq-api-key').value = this.apiKeys.groq;
+                    document.getElementById('openai-api-key').value = this.apiKeys.openai;
+                    document.getElementById('anthropic-api-key').value = this.apiKeys.anthropic;
+                }
+
+                const settings = localStorage.getItem('crawl4ai-settings');
+                if (settings) {
+                    this.settings = JSON.parse(settings);
+                    document.getElementById('concurrent-requests').value = this.settings.concurrentRequests;
+                    document.getElementById('request-delay').value = this.settings.requestDelay;
+                    document.getElementById('timeout').value = this.settings.timeout;
+                    document.getElementById('max-retries').value = this.settings.maxRetries;
+                }
+
+                const aiSchema = localStorage.getItem('crawl4ai-aischema');
+                if (aiSchema) {
+                    this.aiSchema = JSON.parse(aiSchema);
+                    document.getElementById('ai-schema').value = this.aiSchema.schema;
+                    document.getElementById('ai-instruction').value = this.aiSchema.instruction;
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new Crawl4AIDemo();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+{
+  "models": [
+    {
+      "value": "llama-3.1-70b-versatile",
+      "display": "LLaMA 3.1 70B",
+      "provider": "groq"
+    },
+    {
+      "value": "llama-3.1-8b-instant",
+      "display": "LLaMA 3.1 8B",
+      "provider": "groq"
+    },
+    {
+      "value": "llama-3.3-70b-specdec",
+      "display": "LLaMA 3.3 70B SpecDec",
+      "provider": "groq"
+    },
+    {
+      "value": "llama-3.3-70b-versatile",
+      "display": "LLaMA 3.3 70B Versatile",
+      "provider": "groq"
+    },
+    {
+      "value": "gemma2-9b-it",
+      "display": "Gemma 2 9B",
+      "provider": "groq"
+    },
+    {
+      "value": "mixtral-8x7b-32768",
+      "display": "Mixtral 8x7B",
+      "provider": "groq"
+    },
+    {
+      "value": "gpt-3.5-turbo",
+      "display": "GPT-3.5 Turbo",
+      "provider": "openai"
+    },
+    {
+      "value": "gpt-4",
+      "display": "GPT-4",
+      "provider": "openai"
+    },
+    {
+      "value": "gpt-4-turbo",
+      "display": "GPT-4 Turbo",
+      "provider": "openai"
+    },
+    {
+      "value": "claude-3-opus",
+      "display": "Claude 3 Opus",
+      "provider": "anthropic"
+    },
+    {
+      "value": "claude-3-sonnet",
+      "display": "Claude 3 Sonnet",
+      "provider": "anthropic"
+    }
+  ],
+  "default_model": "llama-3.1-8b-instant"
+}

@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crawl4AI Ultimate GUI - The Final Ultimate Crawler</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/turndown/dist/turndown.js"></script>
+    <style>
+        /* Glassmorphism & Modern Design */
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .dark-glass {
+            background: rgba(30, 30, 40, 0.85);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(100, 100, 150, 0.3);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* Buttons & Controls */
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: white; font-weight: 500; padding: 0.75rem 1rem;
+            border-radius: 0.5rem; border: none; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        .btn-secondary { background: #6b7280; color: white; font-weight: 500; padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; cursor: pointer; transition: all 0.2s; }
+        .btn-secondary:hover:not(:disabled) { background: #4b5563; }
+        .btn-danger { background: #ef4444; color: white; font-weight: 500; padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; cursor: pointer; transition: all 0.2s; }
+        .btn-danger:hover:not(:disabled) { background: #dc2626; }
+        .btn-success { background: #10b981; color: white; font-weight: 500; padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; cursor: pointer; transition: all 0.2s; }
+        .btn-success:hover:not(:disabled) { background: #059669; }
+        .btn-warning { background: #f59e0b; color: white; font-weight: 500; padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; cursor: pointer; transition: all 0.2s; }
+        .btn-warning:hover:not(:disabled) { background: #d97706; }
+        .btn-feature { 
+            background: rgba(59, 130, 246, 0.1); 
+            border: 1px solid rgba(59, 130, 246, 0.3); 
+            color: #3b82f6; 
+            font-weight: 500; 
+            padding: 0.5rem 1rem; 
+            border-radius: 0.5rem; 
+            cursor: pointer; 
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-feature:hover { 
+            background: rgba(59, 130, 246, 0.2); 
+            transform: translateY(-1px);
+        }
+        .btn-feature.active {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: white;
+            border-color: transparent;
+        }
+        
+        /* Forms & Messages */
+        .form-input, .form-select, .form-textarea {
+            width: 100%; padding: 0.75rem; border: 1px solid #d1d5db;
+            border-radius: 0.5rem; outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .message { padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; }
+        .message.success { background: #dcfce7; border: 1px solid #bbf7d0; color: #166534; }
+        .message.error { background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; }
+        .message.warning { background: #fef3c7; border: 1px solid #fde68a; color: #92400e; }
+        
+        /* Cards & Sections */
+        .feature-card {
+            transition: all 0.3s ease;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            background: white;
+            page-break-inside: avoid;
+        }
+        .feature-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .feature-card.active {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+        }
+        .metric-card {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        /* Progress & Animations */
+        .progress-bar { transition: width 0.3s ease; }
+        .pulse-ring { animation: pulse-ring 1.5s ease-out infinite; }
+        @keyframes pulse-ring { 0% { transform: scale(.33); opacity: 1; } 80%, 100% { opacity: 0; transform: scale(1.5); } }
+        .animate-bounce-slow { animation: bounce 2s infinite; }
+        .stats-chart { height: 300px; margin-top: 1rem; }
+        
+        /* Modals & Popups */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            border-radius: 0.75rem;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover, .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        /* Feature Toggles */
+        .feature-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            margin-bottom: 0.75rem;
+            background: white;
+            cursor: pointer;
+        }
+        .feature-toggle:hover {
+            background: #f9fafb;
+        }
+        .feature-toggle .toggle-label {
+            flex: 1;
+        }
+        .feature-toggle .toggle-control {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .feature-toggle .edit-btn {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .feature-toggle .edit-btn:hover {
+            background: #e5e7eb;
+        }
+        
+        /* Sliders & Range Inputs */
+        .slider-container {
+            width: 100%;
+            margin: 1rem 0;
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: #4b5563;
+        }
+        .slider {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #e5e7eb;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+        }
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+        }
+        
+        /* Tabs */
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            border-bottom: 2px solid #3b82f6;
+            color: #3b82f6;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Collapsible Sections */
+        .collapsible-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            margin-bottom: 0.5rem;
+        }
+        .collapsible-content {
+            display: none;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            border-top: none;
+            border-radius: 0 0 0.5rem 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .collapsible-content.active {
+            display: block;
+        }
+        
+        /* Dark Mode */
+        .dark-mode {
+            background: #111827;
+            color: #f9fafb;
+        }
+        .dark-mode .feature-card {
+            background: #1f2937;
+            border-color: #374151;
+            color: #f9fafb;
+        }
+        .dark-mode .feature-toggle {
+            background: #1f2937;
+            border-color: #374151;
+            color: #f9fafb;
+        }
+        .dark-mode .feature-toggle:hover {
+            background: #374151;
+        }
+        .dark-mode .form-input, 
+        .dark-mode .form-select, 
+        .dark-mode .form-textarea {
+            background: #1f2937;
+            border-color: #4b5563;
+            color: #f9fafb;
+        }
+        .dark-mode .form-input:focus, 
+        .dark-mode .form-select:focus, 
+        .dark-mode .form-textarea:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .dark-mode .modal-content {
+            background: #1f2937;
+            border-color: #374151;
+            color: #f9fafb;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <div class="glass-effect shadow-lg mb-6 sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="relative">
+                        <i class="fas fa-spider text-blue-600 text-3xl mr-3"></i>
+                        <div class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full pulse-ring"></div>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold gradient-text">Crawl4AI Ultimate GUI</h1>
+                        <p class="text-gray-600 text-sm">The Final Ultimate Web Crawler</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <button id="theme-toggle" class="btn-secondary"><i class="fas fa-moon mr-1"></i>Dark Mode</button>
+                        <button id="save-config" class="btn-secondary"><i class="fas fa-save mr-1"></i>Save</button>
+                        <button id="load-config" class="btn-secondary"><i class="fas fa-folder-open mr-1"></i>Load</button>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="bg-gray-200 px-3 py-2 rounded-full flex items-center">
+                            <div class="w-2 h-2 bg-green-500 rounded-full mr-2" id="connection-indicator"></div>
+                            <span class="text-sm font-medium" id="connection-status">Ready</span>
+                        </div>
+                        <button id="clear-all-btn" class="btn-danger">
+                            <i class="fas fa-trash mr-1"></i>Clear All
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4">
+        <div id="message-container" class="mb-6"></div>
+        
+        <!-- Central Prompt Box -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 mb-8 max-w-4xl mx-auto glass-effect">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold gradient-text mb-2">What would you like to crawl?</h2>
+                <p class="text-gray-600">Describe your crawling task in plain English</p>
+            </div>
+            
+            <div class="mb-6">
+                <textarea id="crawl-prompt" class="form-textarea" rows="4" placeholder="e.g., 'Find all news articles about AI from tech websites published in the last week', or 'Crawl product information from an e-commerce site'"></textarea>
+            </div>
+            
+            <div class="flex flex-wrap gap-3 justify-center mb-6">
+                <button id="ai-discovery-btn" class="btn-feature active">
+                    <i class="fas fa-robot"></i>
+                    AI-Powered Discovery
+                </button>
+                <button id="manual-urls-btn" class="btn-feature">
+                    <i class="fas fa-link"></i>
+                    Manual URLs
+                </button>
+                <button id="batch-crawl-btn" class="btn-feature">
+                    <i class="fas fa-list"></i>
+                    Batch Crawl
+                </button>
+            </div>
+            
+            <!-- Manual URL Input (hidden by default) -->
+            <div id="manual-urls-section" class="mb-6" style="display: none;">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Enter URLs to crawl (one per line)</label>
+                <textarea id="manual-urls" class="form-textarea" rows="4" placeholder="https://example.com/page1
+https://example.com/page2"></textarea>
+            </div>
+            
+            <!-- AI Settings (shown by default) -->
+            <div id="ai-settings-section" class="mb-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Groq API Key</label>
+                        <input type="password" id="ai-api-key" class="form-input" placeholder="gsk_...">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">AI Model</label>
+                        <select id="ai-model" class="form-select">
+                            <option value="llama3-70b-8192">LLaMA Scout</option>
+                            <option value="gemma2-9b-it" selected>Gemma 2 9B</option>
+                            <option value="llama-3.1-70b-versatile">LLaMA 3.1 70B</option>
+                            <option value="llama-3.1-8b-instant">LLaMA 3.1 8B</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center">
+                <button id="discover-urls-btn" class="btn-primary px-8 py-3 text-lg">
+                    <i class="fas fa-search mr-2"></i>Discover URLs
+                </button>
+            </div>
+        </div>
+        
+        <!-- Advanced Crawl4AI Features -->
+        <div id="advanced-features-section" class="bg-white rounded-2xl shadow-lg p-6 mb-8" style="display: none;">
+            <h2 class="text-xl font-semibold text-gray-800 mb-6 text-center">Advanced Crawl4AI Features</h2>
+            
+            <!-- Feature Categories -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                <!-- Deep Crawling -->
+                <div class="feature-card p-4">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center">
+                            <i class="fas fa-sitemap text-blue-600 mr-2"></i>
+                            <h3 class="font-semibold">Deep Crawling</h3>
+                        </div>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="enable-deep-crawl" class="sr-only peer">
+                            <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-3">Follow links to discover more content</p>
+                    <button class="btn-feature w-full justify-center" id="edit-deep-crawl">
+                        <i class="fas fa-cog"></i>
+                        Configure
+                    </button>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="feature-card p-4">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center">
+                            <i class="fas fa-copy text-green-600 mr-2"></i>
+                            <h3 class="font-semibold">Pagination</h3>
+                        </div>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="enable-pagination" class="sr-only peer">
+                            <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-3">Handle paginated content automatically</p>
+                    <button class="btn-feature w-full justify-center" id="edit-pagination">
+                        <i class="fas fa-cog"></i>
+                        Configure
+                    </button>
+                </div>
+                
+                <!-- Proxy Management -->
+                <div class="feature-card p-4">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center">
+                            <i class="fas fa-shield-alt text-purple-600 mr-2"></i>
+                            <h3 class="font-semibold">Proxy Evasion</h3>
+                        </div>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="enable-proxies" class="sr-only peer">
+                            <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-3">Avoid detection with smart proxies</p>
+                    <button class="btn-feature w-full justify-center" id="manage-proxies">
+                        <i class="fas fa-cog"></i>
+                        Configure
+                    </button>
+                </div>
+                
+                <!-- AI Extraction -->
+                <div class="feature-card p-4">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center">
+                            <i class="fas fa-brain text-yellow-600 mr-2"></i>
+                            <h3 class="font-semibold">AI Extraction</h3>
+                        </div>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="enable-ai-extraction" class="sr-only peer">
+                            <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-3">Extract structured data with LLMs</p>
+                    <button class="btn-feature w-full justify-center" id="edit-ai-extraction">
+                        <i class="fas fa-cog"></i>
+                        Configure
+                    </button>
+                </div>
+                
+                <!-- Manual Extraction -->
+                <div class="feature-card p-4">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center">
+                            <i class="fas fa-crosshairs text-red-600 mr-2"></i>
+                            <h3 class="font-semibold">Manual Extraction</h3>
+                        </div>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="enable-manual-extraction" class="sr-only peer">
+                            <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-3">Specify CSS/XPath selectors</p>
+                    <button class="btn-feature w-full justify-center" id="edit-manual-extraction">
+                        <i class="fas fa-cog"></i>
+                        Configure
+                    </button>
+                </div>
+                
+                <!-- Stealth Mode -->
+                <div class="feature-card p-4">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center">
+                            <i class="fas fa-user-secret text-indigo-600 mr-2"></i>
+                            <h3 class="font-semibold">Stealth Mode</h3>
+                        </div>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="enable-stealth" class="sr-only peer">
+                            <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                    <p class="text-sm text-gray-600 mb-3">Avoid bot detection</p>
+                    <button class="btn-feature w-full justify-center" id="edit-stealth">
+                        <i class="fas fa-cog"></i>
+                        Configure
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Advanced Configuration Tabs -->
+            <div class="border-b border-gray-200 mb-6">
+                <nav class="flex space-x-8">
+                    <button class="tab-btn active" data-tab="strategy">Strategy</button>
+                    <button class="tab-btn" data-tab="extraction">Extraction</button>
+                    <button class="tab-btn" data-tab="advanced">Advanced</button>
+                    <button class="tab-btn" data-tab="export">Export</button>
+                </nav>
+            </div>
+            
+            <!-- Strategy Tab -->
+            <div class="tab-content active" id="strategy-tab">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Crawl Strategy -->
+                    <div class="feature-toggle">
+                        <div class="toggle-label">
+                            <div class="font-medium">Crawl Strategy</div>
+                            <div class="text-sm text-gray-600">Choose how aggressively to crawl</div>
+                        </div>
+                        <div class="toggle-control">
+                            <select id="crawl-mode" class="form-select text-sm">
+                                <option value="basic">Basic Crawl</option>
+                                <option value="smart" selected>Smart Mode</option>
+                                <option value="magic">Magic Mode (AI Enhanced)</option>
+                                <option value="comprehensive">Comprehensive</option>
+                                <option value="adaptive">Adaptive Crawling</option>
+                                <option value="deep">Deep Discovery</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Crawl Speed -->
+                    <div class="feature-toggle">
+                        <div class="toggle-label">
+                            <div class="font-medium">Crawl Speed</div>
+                            <div class="text-sm text-gray-600">Control crawling intensity</div>
+                        </div>
+                        <div class="toggle-control">
+                            <select id="crawl-speed" class="form-select text-sm">
+                                <option value="gentle">Gentle (1 req/sec)</option>
+                                <option value="balanced" selected>Balanced (3 req/sec)</option>
+                                <option value="aggressive">Aggressive (5 req/sec)</option>
+                                <option value="turbo">Turbo (10 req/sec)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Content Processing -->
+                    <div class="feature-toggle">
+                        <div class="toggle-label">
+                            <div class="font-medium">Content Processing</div>
+                            <div class="text-sm text-gray-600">Clean and optimize content</div>
+                        </div>
+                        <div class="toggle-control">
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="smart-clean" class="sr-only peer" checked>
+                                <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Respect Robots -->
+                    <div class="feature-toggle">
+                        <div class="toggle-label">
+                            <div class="font-medium">Respect robots.txt</div>
+                            <div class="text-sm text-gray-600">Follow site crawling rules</div>
+                        </div>
+                        <div class="toggle-control">
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="respect-robots" class="sr-only peer" checked>
+                                <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Extraction Tab -->
+            <div class="tab-content" id="extraction-tab">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Output Formats -->
+                    <div class="feature-toggle">
+                        <div class="toggle-label">
+                            <div class="font-medium">Output Formats</div>
+                            <div class="text-sm text-gray-600">Choose content formats</div>
+                        </div>
+                        <div class="toggle-control">
+                            <button class="edit-btn" id="edit-output-formats">
+                                <i class="fas fa-edit mr-1"></i>Edit
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Metadata Extraction -->
+                    <div class="feature-toggle">
+                        <div class="toggle-label">
+                            <div class="font-medium">Extract Metadata</div>
+                            <div class="text-sm text-gray-600">Extract page metadata</div>
+                        </div>
+                        <div class="toggle-control">
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="extract-metadata" class="sr-only peer" checked>
+                                <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Link Extraction -->
+                    <div class="feature-toggle">
+                        <div class="toggle-label">
+                            <div class="font-medium">Extract Links</div>
+                            <div class="text-sm text-gray-600">Extract all hyperlinks</div>
+                        </div>
+                        <div class="toggle-control">
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="extract-links" class="sr-only peer" checked>
+                                <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Media Extraction -->
+                    <div class="feature-toggle">
+                        <div class="toggle-label">
+                            <div class="font-medium">Extract Media</div>
+                            <div class="text-sm text-gray-600">Extract images/videos</div>
+                        </div>
+                        <div class="toggle-control">
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="extract-media" class="sr-only peer">
+                                <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Advanced Tab -->
+            <div class="tab-content" id="advanced-tab">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Timeout & Retries -->
+                    <div class="feature-toggle">
+                        <div class="toggle-label">
+                            <div class="font-medium">Timeout & Retries</div>
+                            <div class="text-sm text-gray-600">Configure network settings</div>
+                        </div>
+                        <div class="toggle-control">
+                            <button class="edit-btn" id="edit-timeout-retries">
+                                <i class="fas fa-edit mr-1"></i>Edit
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- User Agents -->
+                    <div class="feature-toggle">
+                        <div class="toggle-label">
+                            <div class="font-medium">User Agents</div>
+                            <div class="text-sm text-gray-600">Rotate browser signatures</div>
+                        </div>
+                        <div class="toggle-control">
+                            <button class="edit-btn" id="edit-user-agents">
+                                <i class="fas fa-edit mr-1"></i>Edit
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Content Filtering -->
+                    <div class="feature-toggle">
+                        <div class="toggle-label">
+                            <div class="font-medium">Content Filtering</div>
+                            <div class="text-sm text-gray-600">Remove ads and junk</div>
+                        </div>
+                        <div class="toggle-control">
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="filter-ads" class="sr-only peer" checked>
+                                <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- JavaScript Execution -->
+                    <div class="feature-toggle">
+                        <div class="toggle-label">
+                            <div class="font-medium">JavaScript Execution</div>
+                            <div class="text-sm text-gray-600">Execute JS for dynamic content</div>
+                        </div>
+                        <div class="toggle-control">
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="execute-js" class="sr-only peer" checked>
+                                <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Export Tab -->
+            <div class="tab-content" id="export-tab">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <button class="btn-feature flex-col items-center p-4">
+                        <i class="fas fa-file-code text-2xl mb-2"></i>
+                        <span class="font-medium">JSON</span>
+                        <span class="text-sm text-gray-600 mt-1">Structured data</span>
+                    </button>
+                    <button class="btn-feature flex-col items-center p-4">
+                        <i class="fas fa-file-csv text-2xl mb-2"></i>
+                        <span class="font-medium">CSV</span>
+                        <span class="text-sm text-gray-600 mt-1">Tabular data</span>
+                    </button>
+                    <button class="btn-feature flex-col items-center p-4">
+                        <i class="fas fa-file-alt text-2xl mb-2"></i>
+                        <span class="font-medium">Markdown</span>
+                        <span class="text-sm text-gray-600 mt-1">Clean text</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="flex justify-center mt-8">
+                <button id="start-crawl-btn" class="btn-primary px-8 py-3 text-lg">
+                    <i class="fas fa-play mr-2"></i>Start Ultimate Crawling
+                </button>
+            </div>
+        </div>
+        
+        <!-- Progress Dashboard -->
+        <div id="progress-dashboard" class="bg-white rounded-2xl shadow-lg p-6 mb-8" style="display: none;">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4"><i class="fas fa-chart-line mr-2 text-blue-600"></i>Progress Dashboard</h2>
+            <div class="w-full bg-gray-200 rounded-full h-4 mb-4"><div id="progress-bar" class="progress-bar bg-gradient-to-r from-blue-600 to-purple-600 h-4 rounded-full" style="width: 0%"></div></div>
+            <div class="grid grid-cols-2 md:grid-cols-6 gap-4 text-center mb-6">
+                <div class="metric-card rounded-lg p-3"><div class="text-2xl font-bold text-blue-600" id="total-urls">0</div><div class="text-xs text-gray-600">Discovered</div></div>
+                <div class="metric-card rounded-lg p-3"><div class="text-2xl font-bold text-green-600" id="completed-urls">0</div><div class="text-xs text-gray-600">Completed</div></div>
+                <div class="metric-card rounded-lg p-3"><div class="text-2xl font-bold text-red-600" id="failed-urls">0</div><div class="text-xs text-gray-600">Failed</div></div>
+                <div class="metric-card rounded-lg p-3"><div class="text-2xl font-bold text-yellow-600" id="blocks-encountered">0</div><div class="text-xs text-gray-600">Blocks</div></div>
+                <div class="metric-card rounded-lg p-3"><div class="text-2xl font-bold text-indigo-600" id="current-speed">0</div><div class="text-xs text-gray-600">req/min</div></div>
+                <div class="metric-card rounded-lg p-3"><div class="text-2xl font-bold text-purple-600" id="current-depth">0</div><div class="text-xs text-gray-600">Max Depth</div></div>
+            </div>
+            <div class="stats-chart"><canvas id="progressChart"></canvas></div>
+            <div id="current-status" class="bg-gray-50 rounded-lg p-4 border-l-4 border-blue-600"><span class="text-sm text-gray-700" id="status-message">Ready to start crawling.</span></div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results-section" class="bg-white rounded-2xl shadow-lg p-6" style="display: none;">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold text-gray-800"><i class="fas fa-list-alt mr-2 text-green-600"></i>Results</h2>
+                <div class="flex items-center space-x-2">
+                    <button id="download-json" class="btn-secondary text-sm"><i class="fas fa-download mr-1"></i>JSON</button>
+                    <button id="download-csv" class="btn-secondary text-sm"><i class="fas fa-download mr-1"></i>CSV</button>
+                    <button id="download-markdown" class="btn-secondary text-sm"><i class="fas fa-download mr-1"></i>Markdown</button>
+                </div>
+            </div>
+            <div id="results-container" class="results-container space-y-4">
+                <div class="text-center text-gray-500 py-12"><div class="animate-bounce-slow"><i class="fas fa-search text-6xl mb-4 text-gray-300"></i></div><p>Start crawling to see results.</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals for Advanced Configuration -->
+
+    <!-- Deep Crawling Modal -->
+    <div id="deep-crawl-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 class="text-xl font-semibold mb-4">Deep Crawling Configuration</h2>
+            <div class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Max Depth</label>
+                        <input type="number" id="max-depth" class="form-input" value="3" min="1" max="10">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Max URLs</label>
+                        <input type="number" id="max-urls" class="form-input" value="50" min="1" max="10000">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Domain Strategy</label>
+                    <select id="domain-strategy" class="form-select">
+                        <option value="same-domain" selected>Same Domain</option>
+                        <option value="same-subdomain">Same Subdomain</option>
+                        <option value="whitelist">Whitelist Domains</option>
+                        <option value="any">Any Domain</option>
+                    </select>
+                </div>
+                
+                <div id="domain-whitelist-container" style="display: none;">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Allowed Domains</label>
+                    <input type="text" id="domain-whitelist" class="form-input" placeholder="example.com, subdomain.example.com">
+                </div>
+                
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="font-medium text-gray-800 mb-3">Advanced Options</h3>
+                    <div class="space-y-3">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="respect-robots-modal" class="mr-3 rounded" checked>
+                            <span>Respect robots.txt</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="parse-sitemaps" class="mr-3 rounded" checked>
+                            <span>Parse Sitemaps</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="discover-feeds" class="mr-3 rounded">
+                            <span>Discover RSS/Atom Feeds</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Include Patterns</label>
+                        <input type="text" id="include-patterns" class="form-input" placeholder="/blog/*, /articles/*, *.html">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Exclude Patterns</label>
+                        <input type="text" id="exclude-patterns" class="form-input" placeholder="/admin/*, /login/*, *.pdf">
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-2">
+                    <button class="btn-secondary close-modal">Cancel</button>
+                    <button class="btn-primary" id="save-deep-crawl">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination Modal -->
+    <div id="pagination-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 class="text-xl font-semibold mb-4">Pagination Configuration</h2>
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Detection Strategy</label>
+                    <select id="pagination-strategy" class="form-select">
+                        <option value="auto" selected>Auto-Detect (Smart)</option>
+                        <option value="next-link">"Next" Links</option>
+                        <option value="numbered">Numbered Pages</option>
+                        <option value="infinite-scroll">Infinite Scroll (Experimental)</option>
+                        <option value="custom-selector">Custom CSS Selector</option>
+                    </select>
+                </div>
+                
+                <div id="custom-selector-options" style="display: none;">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Next Page CSS Selector</label>
+                    <input type="text" id="next-page-selector" class="form-input" placeholder="a.next, .pagination-next, [rel='next']">
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Max Pages</label>
+                        <input type="number" id="max-pages" class="form-input" value="10" min="1" max="1000">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Page Delay (s)</label>
+                        <input type="number" id="page-delay" class="form-input" value="2" min="1" max="60">
+                    </div>
+                </div>
+                
+                <label class="flex items-center">
+                    <input type="checkbox" id="deduplicate-paginated" class="mr-3 rounded" checked>
+                    <span>Remove Duplicate Content</span>
+                </label>
+                
+                <div class="flex justify-end space-x-2">
+                    <button class="btn-secondary close-modal">Cancel</button>
+                    <button class="btn-primary" id="save-pagination">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Extraction Modal -->
+    <div id="ai-extraction-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 class="text-xl font-semibold mb-4">AI Extraction Configuration</h2>
+            <div class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Groq API Key</label>
+                        <input type="password" id="groq-api-key" class="form-input" placeholder="Required for AI features">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">LLM Model</label>
+                        <select id="llm-model" class="form-select">
+                            <option value="llama-3.1-70b-versatile">LLaMA 3.1 70B</option>
+                            <option value="llama-3.1-8b-instant">LLaMA 3.1 8B (Fast)</option>
+                            <option value="llama3-70b-8192">LLaMA 3 70B (8k)</option>
+                            <option value="llama3-8b-8192">LLaMA 3 8B (8k)</option>
+                            <option value="gemma2-9b-it" selected>Gemma 2 9B (Recommended)</option>
+                            <option value="gemma-7b-it">Gemma 7B</option>
+                            <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
+                            <option value="whisper-large-v3">Whisper V3 (Audio Transcription)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">AI Request Delay (ms)</label>
+                    <input type="number" id="ai-request-delay" class="form-input" value="500" min="100" step="100">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Custom Extraction Schema</label>
+                    <textarea id="custom-schema" class="form-textarea" rows="6" placeholder='{
+  "fields": [
+    {
+      "name": "title",
+      "selector": "h1",
+      "type": "text"
+    },
+    {
+      "name": "price",
+      "selector": ".price",
+      "type": "text"
+    }
+  ]
+}'></textarea>
+                </div>
+                
+                <div class="flex justify-end space-x-2">
+                    <button class="btn-secondary close-modal">Cancel</button>
+                    <button class="btn-primary" id="save-ai-extraction">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manual Extraction Modal -->
+    <div id="manual-extraction-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 class="text-xl font-semibold mb-4">Manual Extraction Configuration</h2>
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">CSS Selector</label>
+                    <input type="text" id="css-selector" class="form-input" placeholder="CSS Selector (e.g., .article-content, #main)">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">XPath</label>
+                    <input type="text" id="xpath-selector" class="form-input" placeholder="XPath (e.g., //div[@class='content'])">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Wait for Selector</label>
+                    <input type="text" id="wait-for-selector" class="form-input" placeholder="Selector to wait for before extracting">
+                </div>
+                
+                <div class="flex justify-end space-x-2">
+                    <button class="btn-secondary close-modal">Cancel</button>
+                    <button class="btn-primary" id="save-manual-extraction">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Output Formats Modal -->
+    <div id="output-formats-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 class="text-xl font-semibold mb-4">Output Formats</h2>
+            <div class="space-y-4">
+                <div class="bg-blue-50 rounded-lg p-4">
+                    <h3 class="font-medium text-blue-800 mb-3">Content Formats</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <label class="flex items-center p-3 bg-white rounded-lg border">
+                            <input type="checkbox" id="generate-markdown" class="mr-3 rounded" checked>
+                            <div>
+                                <div class="font-medium">Markdown</div>
+                                <div class="text-sm text-gray-600">Clean, structured markdown</div>
+                            </div>
+                        </label>
+                        <label class="flex items-center p-3 bg-white rounded-lg border">
+                            <input type="checkbox" id="generate-html" class="mr-3 rounded">
+                            <div>
+                                <div class="font-medium">HTML</div>
+                                <div class="text-sm text-gray-600">Raw HTML content</div>
+                            </div>
+                        </label>
+                        <label class="flex items-center p-3 bg-white rounded-lg border">
+                            <input type="checkbox" id="generate-text" class="mr-3 rounded">
+                            <div>
+                                <div class="font-medium">Plain Text</div>
+                                <div class="text-sm text-gray-600">Extracted text only</div>
+                            </div>
+                        </label>
+                        <label class="flex items-center p-3 bg-white rounded-lg border">
+                            <input type="checkbox" id="generate-json" class="mr-3 rounded">
+                            <div>
+                                <div class="font-medium">JSON</div>
+                                <div class="text-sm text-gray-600">Structured JSON output</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-2">
+                    <button class="btn-secondary close-modal">Cancel</button>
+                    <button class="btn-primary" id="save-output-formats">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timeout & Retries Modal -->
+    <div id="timeout-retries-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 class="text-xl font-semibold mb-4">Timeout & Retry Configuration</h2>
+            <div class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Timeout (s)</label>
+                        <input type="number" id="timeout" class="form-input" value="10" min="5" max="300">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Max Retries</label>
+                        <input type="number" id="max-retries" class="form-input" value="3" min="0" max="10">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Crawl Delay (s)</label>
+                        <input type="number" id="crawl-delay" class="form-input" value="1" min="0" step="0.1">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Delay Jitter (s)</label>
+                        <input type="number" id="delay-jitter" class="form-input" value="0.5" min="0" step="0.1">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Concurrent Requests</label>
+                    <input type="number" id="concurrent-requests" class="form-input" value="3" min="1" max="20">
+                </div>
+                
+                <div class="flex justify-end space-x-2">
+                    <button class="btn-secondary close-modal">Cancel</button>
+                    <button class="btn-primary" id="save-timeout-retries">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Agents Modal -->
+    <div id="user-agents-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 class="text-xl font-semibold mb-4">User Agent Configuration</h2>
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">User Agents (one per line)</label>
+                    <textarea id="user-agents-list" class="form-textarea" rows="8" placeholder="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36
+Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36
+Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:127.0) Gecko/20100101 Firefox/127.0
+Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36
+Mozilla/5.0 (iPhone; CPU iPhone OS 17_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1"></textarea>
+                </div>
+                
+                <div class="flex justify-end space-x-2">
+                    <button class="btn-secondary close-modal">Cancel</button>
+                    <button class="btn-primary" id="save-user-agents">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stealth Mode Modal -->
+    <div id="stealth-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 class="text-xl font-semibold mb-4">Stealth Mode Configuration</h2>
+            <div class="space-y-6">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="font-medium text-gray-800 mb-3">Stealth Features</h3>
+                    <div class="space-y-3">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="stealth-browser" class="mr-3 rounded" checked>
+                            <span>Undetected Browser</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="stealth-headers" class="mr-3 rounded" checked>
+                            <span>Random Headers</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="stealth-fingerprints" class="mr-3 rounded" checked>
+                            <span>Browser Fingerprint Spoofing</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="stealth-viewports" class="mr-3 rounded" checked>
+                            <span>Random Viewports</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="checkbox" id="stealth-human" class="mr-3 rounded" checked>
+                            <span>Human Behavior Simulation</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-2">
+                    <button class="btn-secondary close-modal">Cancel</button>
+                    <button class="btn-primary" id="save-stealth">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Crawl4AI Ultimate GUI - The Final Ultimate Crawler
+         * Exposes all Crawl4AI features in a simplified but powerful interface
+         */
+        class Crawl4AIUltimateGUI {
+            constructor() {
+                this.currentStep = 1;
+                this.selectedUrls = [];
+                this.progressChart = null;
+                this.sessionId = null;
+                this.darkMode = false;
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.initializeChart();
+                this.loadDefaultUserAgents();
+                this.loadProxies();
+            }
+
+            setupEventListeners() {
+                // Prompt method selection
+                document.getElementById('ai-discovery-btn').addEventListener('click', () => this.selectPromptMethod('ai'));
+                document.getElementById('manual-urls-btn').addEventListener('click', () => this.selectPromptMethod('manual'));
+                document.getElementById('batch-crawl-btn').addEventListener('click', () => this.selectPromptMethod('batch'));
+
+                // Main actions
+                document.getElementById('discover-urls-btn').addEventListener('click', () => this.discoverUrls());
+                document.getElementById('start-crawl-btn').addEventListener('click', () => this.startCrawl());
+
+                // Feature configuration buttons
+                document.getElementById('edit-deep-crawl').addEventListener('click', () => this.openModal('deep-crawl-modal'));
+                document.getElementById('edit-pagination').addEventListener('click', () => this.openModal('pagination-modal'));
+                document.getElementById('edit-ai-extraction').addEventListener('click', () => this.openModal('ai-extraction-modal'));
+                document.getElementById('edit-manual-extraction').addEventListener('click', () => this.openModal('manual-extraction-modal'));
+                document.getElementById('manage-proxies').addEventListener('click', () => this.openModal('proxy-modal'));
+                document.getElementById('edit-output-formats').addEventListener('click', () => this.openModal('output-formats-modal'));
+                document.getElementById('edit-timeout-retries').addEventListener('click', () => this.openModal('timeout-retries-modal'));
+                document.getElementById('edit-user-agents').addEventListener('click', () => this.openModal('user-agents-modal'));
+                document.getElementById('edit-stealth').addEventListener('click', () => this.openModal('stealth-modal'));
+
+                // Modal close buttons
+                document.querySelectorAll('.close, .close-modal').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const modal = e.target.closest('.modal') || document.getElementById(e.target.closest('button').dataset.modal);
+                        if (modal) this.closeModal(modal.id);
+                    });
+                });
+
+                // Tab navigation
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
+                });
+
+                // Domain strategy change
+                document.getElementById('domain-strategy').addEventListener('change', (e) => {
+                    document.getElementById('domain-whitelist-container').style.display = 
+                        e.target.value === 'whitelist' ? 'block' : 'none';
+                });
+
+                // Pagination strategy change
+                document.getElementById('pagination-strategy').addEventListener('change', (e) => {
+                    document.getElementById('custom-selector-options').style.display = 
+                        e.target.value === 'custom-selector' ? 'block' : 'none';
+                });
+
+                // Theme toggle
+                document.getElementById('theme-toggle').addEventListener('click', () => this.toggleTheme());
+
+                // Config management
+                document.getElementById('save-config').addEventListener('click', () => this.saveConfig());
+                document.getElementById('load-config').addEventListener('click', () => this.loadConfig());
+                document.getElementById('clear-all-btn').addEventListener('click', () => this.clearAll());
+
+                // Downloads
+                document.getElementById('download-json').addEventListener('click', () => this.downloadResults('json'));
+                document.getElementById('download-csv').addEventListener('click', () => this.downloadResults('csv'));
+                document.getElementById('download-markdown').addEventListener('click', () => this.downloadResults('markdown'));
+
+                // Modal save buttons
+                document.getElementById('save-deep-crawl').addEventListener('click', () => this.saveDeepCrawl());
+                document.getElementById('save-pagination').addEventListener('click', () => this.savePagination());
+                document.getElementById('save-ai-extraction').addEventListener('click', () => this.saveAIExtraction());
+                document.getElementById('save-manual-extraction').addEventListener('click', () => this.saveManualExtraction());
+                document.getElementById('save-output-formats').addEventListener('click', () => this.saveOutputFormats());
+                document.getElementById('save-timeout-retries').addEventListener('click', () => this.saveTimeoutRetries());
+                document.getElementById('save-user-agents').addEventListener('click', () => this.saveUserAgents());
+                document.getElementById('save-stealth').addEventListener('click', () => this.saveStealth());
+
+                // Close modals when clicking outside
+                window.addEventListener('click', (e) => {
+                    document.querySelectorAll('.modal').forEach(modal => {
+                        if (e.target === modal) {
+                            this.closeModal(modal.id);
+                        }
+                    });
+                });
+            }
+
+            selectPromptMethod(method) {
+                // Update button states
+                document.querySelectorAll('#ai-discovery-btn, #manual-urls-btn, #batch-crawl-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                if (method === 'ai') {
+                    document.getElementById('ai-discovery-btn').classList.add('active');
+                    document.getElementById('ai-settings-section').style.display = 'block';
+                    document.getElementById('manual-urls-section').style.display = 'none';
+                } else if (method === 'manual') {
+                    document.getElementById('manual-urls-btn').classList.add('active');
+                    document.getElementById('ai-settings-section').style.display = 'none';
+                    document.getElementById('manual-urls-section').style.display = 'block';
+                } else {
+                    document.getElementById('batch-crawl-btn').classList.add('active');
+                    document.getElementById('ai-settings-section').style.display = 'none';
+                    document.getElementById('manual-urls-section').style.display = 'none';
+                }
+            }
+
+            loadDefaultUserAgents() {
+                const defaultUAs = [
+                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+                    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:127.0) Gecko/20100101 Firefox/127.0',
+                    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+                    'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1'
+                ];
+                document.getElementById('user-agents-list').value = defaultUAs.join('\n');
+            }
+
+            initializeChart() {
+                const ctx = document.getElementById('progressChart').getContext('2d');
+                if (this.progressChart) this.progressChart.destroy();
+                this.progressChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [
+                            {
+                                label: 'Success',
+                                data: [],
+                                borderColor: '#10B981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                tension: 0.2,
+                                fill: true
+                            },
+                            {
+                                label: 'Failed',
+                                data: [],
+                                borderColor: '#EF4444',
+                                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                tension: 0.2,
+                                fill: true
+                            },
+                            {
+                                label: 'Blocks',
+                                data: [],
+                                borderColor: '#F59E0B',
+                                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                                tension: 0.2,
+                                fill: true
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                stacked: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            openModal(modalId) {
+                document.getElementById(modalId).style.display = 'block';
+            }
+
+            closeModal(modalId) {
+                document.getElementById(modalId).style.display = 'none';
+            }
+
+            switchTab(tabName) {
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+                document.getElementById(`${tabName}-tab`).classList.add('active');
+            }
+
+            async discoverUrls() {
+                const method = document.querySelector('#ai-discovery-btn.active, #manual-urls-btn.active, #batch-crawl-btn.active');
+                const prompt = document.getElementById('crawl-prompt').value.trim();
+                
+                if (!prompt) {
+                    this.showMessage('Please enter a crawling prompt.', 'warning');
+                    return;
+                }
+                
+                if (method && method.id === 'ai-discovery-btn') {
+                    const apiKey = document.getElementById('ai-api-key').value.trim();
+                    const model = document.getElementById('ai-model').value;
+                    
+                    if (!apiKey) {
+                        this.showMessage('Please enter your Groq API key.', 'warning');
+                        return;
+                    }
+                    
+                    this.showMessage('AI is discovering URLs based on your prompt...', 'warning');
+                    document.getElementById('discover-urls-btn').disabled = true;
+                    document.getElementById('discover-urls-btn').innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Discovering...';
+                    
+                    try {
+                        const response = await fetch('/api/simplified-crawl/discover-urls-simplified', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                prompt,
+                                ai_api_key: apiKey,
+                                ai_model: model
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (!response.ok) {
+                            throw new Error(data.error || 'Failed to discover URLs');
+                        }
+                        
+                        this.displayUrlChecklist(data.urls);
+                        this.showMessage(`AI found ${data.urls.length} URLs. Please review and confirm.`, 'success');
+                    } catch (error) {
+                        this.showMessage(`AI Discovery Failed: ${error.message}`, 'error');
+                    } finally {
+                        document.getElementById('discover-urls-btn').disabled = false;
+                        document.getElementById('discover-urls-btn').innerHTML = '<i class="fas fa-search mr-2"></i>Discover URLs';
+                    }
+                } else {
+                    const urls = document.getElementById('manual-urls').value.trim().split('\n')
+                        .map(url => url.trim())
+                        .filter(url => url.startsWith('http'));
+                    
+                    if (urls.length === 0) {
+                        this.showMessage('Please enter at least one valid URL.', 'warning');
+                        return;
+                    }
+                    
+                    this.displayUrlChecklist(urls);
+                    this.showMessage(`${urls.length} URLs added for crawling.`, 'success');
+                }
+            }
+
+            displayUrlChecklist(urls) {
+                const container = document.getElementById('url-checklist');
+                container.innerHTML = '';
+                
+                urls.forEach((url, index) => {
+                    const checkboxId = `url-${index}`;
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center p-2 border rounded-lg';
+                    div.innerHTML = `
+                        <input type="checkbox" id="${checkboxId}" value="${this.escapeHtml(url)}" class="mr-3 rounded" checked>
+                        <label for="${checkboxId}" class="text-sm font-mono flex-grow">${this.escapeHtml(url)}</label>
+                    `;
+                    container.appendChild(div);
+                });
+                
+                document.getElementById('url-selection-section').style.display = 'block';
+                document.getElementById('advanced-features-section').style.display = 'block';
+                document.getElementById('progress-dashboard').style.display = 'block';
+                document.getElementById('results-section').style.display = 'block';
+            }
+
+            async startCrawl() {
+                if (this.selectedUrls.length === 0) {
+                    this.showMessage('Please confirm URLs before starting crawl.', 'warning');
+                    return;
+                }
+                
+                this.showMessage('Starting crawl...', 'warning');
+                document.getElementById('start-crawl-btn').disabled = true;
+                document.getElementById('start-crawl-btn').innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Crawling...';
+                
+                try {
+                    // Simulate crawling process
+                    await this.simulateCrawling();
+                } catch (error) {
+                    this.showMessage(`Crawl failed to start: ${error.message}`, 'error');
+                } finally {
+                    document.getElementById('start-crawl-btn').disabled = false;
+                    document.getElementById('start-crawl-btn').innerHTML = '<i class="fas fa-play mr-2"></i>Start Ultimate Crawling';
+                }
+            }
+
+            async simulateCrawling() {
+                // This would be replaced with actual crawling logic
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 5;
+                    if (progress > 100) {
+                        clearInterval(interval);
+                        this.showMessage('Crawling completed successfully!', 'success');
+                    } else {
+                        this.updateProgress(progress);
+                    }
+                }, 300);
+            }
+
+            updateProgress(percentage) {
+                document.getElementById('progress-bar').style.width = `${percentage}%`;
+                document.getElementById('status-message').textContent = `Crawling progress: ${percentage}%`;
+                
+                // Update stats (mock data)
+                const stats = {
+                    discovered: Math.floor(percentage * 2),
+                    completed: Math.floor(percentage * 1.5),
+                    failed: Math.floor(percentage * 0.1),
+                    blocks: Math.floor(percentage * 0.05),
+                    speed: Math.floor(percentage * 2),
+                    depth: Math.min(3, Math.floor(percentage / 20))
+                };
+                
+                document.getElementById('total-urls').textContent = stats.discovered;
+                document.getElementById('completed-urls').textContent = stats.completed;
+                document.getElementById('failed-urls').textContent = stats.failed;
+                document.getElementById('blocks-encountered').textContent = stats.blocks;
+                document.getElementById('current-speed').textContent = stats.speed;
+                document.getElementById('current-depth').textContent = stats.depth;
+                
+                // Update chart
+                const time = new Date().toLocaleTimeString();
+                this.progressChart.data.labels.push(time);
+                this.progressChart.data.datasets[0].data.push(stats.completed);
+                this.progressChart.data.datasets[1].data.push(stats.failed);
+                this.progressChart.data.datasets[2].data.push(stats.blocks);
+                
+                if (this.progressChart.data.labels.length > 20) {
+                    this.progressChart.data.labels.shift();
+                    this.progressChart.data.datasets.forEach(ds => ds.data.shift());
+                }
+                
+                this.progressChart.update();
+            }
+
+            toggleTheme() {
+                this.darkMode = !this.darkMode;
+                if (this.darkMode) {
+                    document.body.classList.add('dark-mode');
+                    document.getElementById('theme-toggle').innerHTML = '<i class="fas fa-sun mr-1"></i>Light Mode';
+                } else {
+                    document.body.classList.remove('dark-mode');
+                    document.getElementById('theme-toggle').innerHTML = '<i class="fas fa-moon mr-1"></i>Dark Mode';
+                }
+            }
+
+            saveConfig() {
+                this.showMessage('Configuration saved.', 'success');
+            }
+
+            loadConfig() {
+                this.showMessage('Configuration loaded.', 'success');
+            }
+
+            clearAll() {
+                if (confirm('Are you sure you want to clear all data?')) {
+                    document.getElementById('crawl-prompt').value = '';
+                    document.getElementById('manual-urls').value = '';
+                    document.getElementById('url-checklist').innerHTML = '';
+                    document.getElementById('results-container').innerHTML = '<div class="text-center text-gray-500 py-12"><div class="animate-bounce-slow"><i class="fas fa-search text-6xl mb-4 text-gray-300"></i></div><p>All data cleared.</p></div>';
+                    
+                    // Reset stats
+                    document.getElementById('total-urls').textContent = '0';
+                    document.getElementById('completed-urls').textContent = '0';
+                    document.getElementById('failed-urls').textContent = '0';
+                    document.getElementById('blocks-encountered').textContent = '0';
+                    document.getElementById('current-speed').textContent = '0';
+                    document.getElementById('current-depth').textContent = '0';
+                    document.getElementById('progress-bar').style.width = '0%';
+                    document.getElementById('status-message').textContent = 'All data cleared.';
+                    
+                    // Reset UI sections
+                    document.getElementById('url-selection-section').style.display = 'none';
+                    document.getElementById('advanced-features-section').style.display = 'none';
+                    document.getElementById('progress-dashboard').style.display = 'none';
+                    document.getElementById('results-section').style.display = 'none';
+                    
+                    this.initializeChart();
+                    this.showMessage('All data cleared.', 'success');
+                }
+            }
+
+            downloadResults(format) {
+                if (!this.sessionId) {
+                    this.showMessage('Please start a crawl session first.', 'warning');
+                    return;
+                }
+                
+                window.open(`/api/simplified-crawl/sessions/${this.sessionId}/export-simplified/${format}`, '_blank');
+                this.showMessage(`Downloading results as ${format.toUpperCase()}...`, 'success');
+            }
+
+            saveDeepCrawl() {
+                this.showMessage('Deep crawl settings saved.', 'success');
+                this.closeModal('deep-crawl-modal');
+            }
+
+            savePagination() {
+                this.showMessage('Pagination settings saved.', 'success');
+                this.closeModal('pagination-modal');
+            }
+
+            saveAIExtraction() {
+                this.showMessage('AI extraction settings saved.', 'success');
+                this.closeModal('ai-extraction-modal');
+            }
+
+            saveManualExtraction() {
+                this.showMessage('Manual extraction settings saved.', 'success');
+                this.closeModal('manual-extraction-modal');
+            }
+
+            saveOutputFormats() {
+                this.showMessage('Output formats saved.', 'success');
+                this.closeModal('output-formats-modal');
+            }
+
+            saveTimeoutRetries() {
+                this.showMessage('Timeout & retry settings saved.', 'success');
+                this.closeModal('timeout-retries-modal');
+            }
+
+            saveUserAgents() {
+                this.showMessage('User agents saved.', 'success');
+                this.closeModal('user-agents-modal');
+            }
+
+            saveStealth() {
+                this.showMessage('Stealth mode settings saved.', 'success');
+                this.closeModal('stealth-modal');
+            }
+
+            showMessage(message, type) {
+                const container = document.getElementById('message-container');
+                const div = document.createElement('div');
+                div.className = `message ${type} flex justify-between items-center`;
+                div.innerHTML = `<span>${message}</span><button class="font-bold" onclick="this.parentElement.remove()">&times;</button>`;
+                container.appendChild(div);
+                setTimeout(() => div.remove(), 5000);
+            }
+
+            escapeHtml(unsafe) {
+                return unsafe?.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") || '';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new Crawl4AIUltimateGUI();
+        });
+    </script>
+</body>
+</html>

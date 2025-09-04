@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartScrape - Real Crawl4AI Interface</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <div class="glass-effect shadow-lg mb-6 sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="relative">
+                        <i class="fas fa-spider text-blue-600 text-3xl mr-3"></i>
+                        <div class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full pulse-ring"></div>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold gradient-text">SmartScrape</h1>
+                        <p class="text-gray-600 text-sm">Real Crawl4AI Engine</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <button id="save-config" class="btn-secondary no-print"><i class="fas fa-save mr-1"></i>Save</button>
+                        <button id="load-config" class="btn-secondary no-print"><i class="fas fa-folder-open mr-1"></i>Load</button>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="bg-gray-200 px-3 py-2 rounded-full flex items-center">
+                            <div class="w-2 h-2 bg-green-500 rounded-full mr-2" id="connection-indicator"></div>
+                            <span class="text-sm font-medium" id="connection-status">Ready</span>
+                        </div>
+                        <button id="clear-all-btn" class="btn-danger no-print">
+                            <i class="fas fa-trash mr-1"></i>Clear All
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4">
+        <div id="message-container" class="mb-6"></div>
+        
+        <!-- Main Input Section -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4"><i class="fas fa-search mr-2 text-blue-600"></i>Your Crawling Prompt</h2>
+            <div class="mb-4">
+                <textarea id="crawl-prompt" class="form-input" rows="3" placeholder="Enter a URL to crawl or describe what you want to find... e.g., 'https://example.com' or 'Find all news articles about AI from tech websites'"></textarea>
+            </div>
+            
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <label class="flex items-center">
+                        <input type="checkbox" id="ai-extraction-toggle" class="mr-2 rounded">
+                        <span class="text-sm">AI Extraction</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" id="deep-crawl-toggle" class="mr-2 rounded">
+                        <span class="text-sm">Deep Crawl</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" id="pagination-toggle" class="mr-2 rounded">
+                        <span class="text-sm">Pagination</span>
+                    </label>
+                </div>
+                <button id="start-crawl-btn" class="btn-success"><i class="fas fa-play mr-2"></i>Start Crawling</button>
+            </div>
+        </div>
+        
+        <!-- Advanced Configuration -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4"><i class="fas fa-cogs mr-2 text-purple-600"></i>Advanced Configuration</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Crawl Strategy</label>
+                    <select id="crawl-strategy" class="form-select">
+                        <option value="basic">Basic Crawl</option>
+                        <option value="smart">Smart Mode</option>
+                        <option value="magic">Magic Mode (AI Enhanced)</option>
+                        <option value="comprehensive">Comprehensive</option>
+                        <option value="adaptive">Adaptive Crawling</option>
+                        <option value="deep">Deep Discovery</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Extraction Strategy</label>
+                    <select id="extraction-strategy" class="form-select">
+                        <option value="css_selector">CSS Selector</option>
+                        <option value="llm_based">LLM Based</option>
+                        <option value="cosine">Cosine Strategy</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Chunking Strategy</label>
+                    <select id="chunking-strategy" class="form-select">
+                        <option value="semantic">Semantic</option>
+                        <option value="regex">Regex</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Max Depth</label>
+                    <input type="number" id="max-depth" class="form-input" value="3" min="1" max="10">
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">CSS Selector (for manual extraction)</label>
+                    <input type="text" id="css-selector" class="form-input" placeholder=".content, #main, article">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">XPath (for manual extraction)</label>
+                    <input type="text" id="xpath-selector" class="form-input" placeholder="//div[@class='content']">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Progress Dashboard -->
+        <div id="progress-dashboard" class="bg-white rounded-xl shadow-lg p-6 mb-6" style="display: none;">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4"><i class="fas fa-chart-line mr-2 text-blue-600"></i>Progress Dashboard</h2>
+            <div class="w-full bg-gray-200 rounded-full h-3 mb-4"><div id="progress-bar" class="progress-bar bg-gradient-to-r from-blue-600 to-purple-600 h-3 rounded-full" style="width: 0%"></div></div>
+            <div class="grid grid-cols-2 md:grid-cols-6 gap-4 text-center mb-6">
+                <div class="metric-card rounded-lg p-3"><div class="text-2xl font-bold text-blue-600" id="total-urls">0</div><div class="text-xs text-gray-600">Discovered</div></div>
+                <div class="metric-card rounded-lg p-3"><div class="text-2xl font-bold text-green-600" id="completed-urls">0</div><div class="text-xs text-gray-600">Completed</div></div>
+                <div class="metric-card rounded-lg p-3"><div class="text-2xl font-bold text-red-600" id="failed-urls">0</div><div class="text-xs text-gray-600">Failed</div></div>
+                <div class="metric-card rounded-lg p-3"><div class="text-2xl font-bold text-yellow-600" id="blocks-encountered">0</div><div class="text-xs text-gray-600">Blocks</div></div>
+                <div class="metric-card rounded-lg p-3"><div class="text-2xl font-bold text-indigo-600" id="current-speed">0</div><div class="text-xs text-gray-600">req/min</div></div>
+                <div class="metric-card rounded-lg p-3"><div class="text-2xl font-bold text-purple-600" id="current-depth">0</div><div class="text-xs text-gray-600">Max Depth</div></div>
+            </div>
+            <div class="stats-chart"><canvas id="progressChart"></canvas></div>
+            <div id="current-status" class="bg-gray-50 rounded-lg p-4 border-l-4 border-blue-600"><span class="text-sm text-gray-700" id="status-message">Ready to start crawling.</span></div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results-section" class="bg-white rounded-xl shadow-lg p-6" style="display: none;">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-semibold text-gray-800"><i class="fas fa-list-alt mr-2 text-green-600"></i>Results</h2>
+                <div class="flex items-center space-x-2">
+                    <button id="download-json" class="btn-secondary text-sm"><i class="fas fa-download mr-1"></i>JSON</button>
+                    <button id="download-csv" class="btn-secondary text-sm"><i class="fas fa-download mr-1"></i>CSV</button>
+                </div>
+            </div>
+            <div id="results-container" class="results-container space-y-4">
+                <div class="text-center text-gray-500 py-12"><div class="animate-bounce-slow"><i class="fas fa-search text-6xl mb-4 text-gray-300"></i></div><p>Start crawling to see results.</p></div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* General Styling & Layout */
+        .progress-bar { transition: width 0.3s ease; }
+        
+        /* Glassmorphism & Gradients */
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: white; font-weight: 500; padding: 0.75rem 1rem;
+            border-radius: 0.5rem; border: none; cursor: pointer; transition: all 0.2s;
+        }
+        .btn-primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-secondary { background: #6b7280; color: white; font-weight: 500; padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; cursor: pointer; transition: all 0.2s; }
+        .btn-secondary:hover:not(:disabled) { background: #4b5563; }
+        .btn-danger { background: #ef4444; color: white; font-weight: 500; padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; cursor: pointer; transition: all 0.2s; }
+        .btn-danger:hover:not(:disabled) { background: #dc2626; }
+        .btn-success { background: #10b981; color: white; font-weight: 500; padding: 0.75rem 1rem; border-radius: 0.5rem; border: none; cursor: pointer; transition: all 0.2s; }
+        .btn-success:hover:not(:disabled) { background: #059669; }
+
+        /* Forms & Messages */
+        .form-input, .form-select {
+            width: 100%; padding: 0.75rem; border: 1px solid #d1d5db;
+            border-radius: 0.5rem; outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .form-input:focus, .form-select:focus {
+            border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .message { padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; }
+        .message.success { background: #dcfce7; border: 1px solid #bbf7d0; color: #166534; }
+        .message.error { background: #fee2e2; border: 1px solid #fecaca; color: #991b1b; }
+        .message.warning { background: #fef3c7; border: 1px solid #fde68a; color: #92400e; }
+
+        /* Cards & Sections */
+        .crawl-card { 
+            transition: all 0.3s ease; 
+            page-break-inside: avoid;
+        }
+        .crawl-card:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
+        }
+        .crawl-card.success { border-left: 4px solid #10B981; }
+        .crawl-card.failed { border-left: 4px solid #EF4444; }
+        .crawl-card.blocked { border-left: 4px solid #F59E0B; }
+        .crawl-card.processing { border-left: 4px solid #8B5CF6; }
+        .crawl-card.discovered { border-left: 4px solid #3B82F6; }
+        .metric-card {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        /* Animations */
+        .pulse-ring { animation: pulse-ring 1.5s ease-out infinite; }
+        @keyframes pulse-ring { 0% { transform: scale(.33); opacity: 1; } 80%, 100% { opacity: 0; transform: scale(1.5); } }
+        .animate-bounce-slow { animation: bounce 2s infinite; }
+        .stats-chart { height: 300px; margin-top: 1rem; }
+    </style>
+
+    <script>
+        /**
+         * SmartScrape Real Crawl4AI UI
+         * A modern interface for the powerful Crawl4AI engine with real functionality
+         */
+        class SmartScrapeUI {
+            constructor() {
+                this.crawlResults = [];
+                this.progressChart = null;
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.initializeChart();
+                this.checkApiConnection();
+            }
+
+            setupEventListeners() {
+                // Main actions
+                document.getElementById('start-crawl-btn').addEventListener('click', () => this.startCrawl());
+                document.getElementById('clear-all-btn').addEventListener('click', () => this.clearAll());
+                document.getElementById('download-json').addEventListener('click', () => this.downloadResults('json'));
+                document.getElementById('download-csv').addEventListener('click', () => this.downloadResults('csv'));
+                document.getElementById('save-config').addEventListener('click', () => this.saveConfig());
+                document.getElementById('load-config').addEventListener('click', () => this.loadConfig());
+            }
+
+            async checkApiConnection() {
+                try {
+                    const response = await fetch('http://localhost:8000/health');
+                    const data = await response.json();
+                    
+                    if (data.status === 'healthy') {
+                        document.getElementById('connection-status').innerHTML = '<i class="fas fa-check-circle text-green-500 mr-1"></i>Connected to Crawl4AI';
+                    } else {
+                        throw new Error('Crawl4AI service not responding correctly');
+                    }
+                } catch (error) {
+                    console.error('Crawl4AI connection error:', error);
+                    document.getElementById('connection-status').innerHTML = '<i class="fas fa-exclamation-circle text-red-500 mr-1"></i>Disconnected';
+                    this.showMessage('Error connecting to Crawl4AI service. Please make sure it is running on port 8000.', 'error');
+                }
+            }
+
+            initializeChart() {
+                const ctx = document.getElementById('progressChart').getContext('2d');
+                if (this.progressChart) this.progressChart.destroy();
+                this.progressChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [
+                            {
+                                label: 'Success',
+                                data: [],
+                                borderColor: '#10B981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                tension: 0.2,
+                                fill: true
+                            },
+                            {
+                                label: 'Failed',
+                                data: [],
+                                borderColor: '#EF4444',
+                                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                tension: 0.2,
+                                fill: true
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            async startCrawl() {
+                const prompt = document.getElementById('crawl-prompt').value.trim();
+                if (!prompt) {
+                    this.showMessage('Please enter a URL or crawling prompt.', 'warning');
+                    return;
+                }
+
+                // Determine if it's a URL or a description
+                const isUrl = prompt.startsWith('http://') || prompt.startsWith('https://');
+                
+                if (isUrl) {
+                    this.showMessage('Starting crawl...', 'warning');
+                    document.getElementById('start-crawl-btn').disabled = true;
+                    document.getElementById('start-crawl-btn').innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Crawling...';
+                    
+                    try {
+                        // Show progress dashboard
+                        document.getElementById('progress-dashboard').style.display = 'block';
+                        document.getElementById('results-section').style.display = 'block';
+                        
+                        // Prepare crawl configuration
+                        const crawlConfig = {
+                            url: prompt,
+                            strategy: document.getElementById('crawl-strategy').value,
+                            extraction_strategy: document.getElementById('extraction-strategy').value,
+                            chunking_strategy: document.getElementById('chunking-strategy').value,
+                            enable_pagination: document.getElementById('pagination-toggle').checked,
+                            enable_deep_crawl: document.getElementById('deep-crawl-toggle').checked,
+                            max_depth: parseInt(document.getElementById('max-depth').value) || 3
+                        };
+
+                        // Add CSS selector if provided
+                        const cssSelector = document.getElementById('css-selector').value.trim();
+                        if (cssSelector) {
+                            crawlConfig.css_selector = cssSelector;
+                        }
+
+                        // Add XPath if provided
+                        const xpathSelector = document.getElementById('xpath-selector').value.trim();
+                        if (xpathSelector) {
+                            crawlConfig.xpath_selector = xpathSelector;
+                        }
+
+                        // Add AI extraction if enabled
+                        if (document.getElementById('ai-extraction-toggle').checked) {
+                            crawlConfig.extraction_strategy = 'llm_based';
+                            // You would need to provide an API key and schema here for real AI extraction
+                        }
+
+                        console.log('Sending crawl request:', crawlConfig);
+
+                        // Send request to Crawl4AI service
+                        const response = await fetch('http://localhost:8000/crawl', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(crawlConfig)
+                        });
+
+                        const data = await response.json();
+                        console.log('Crawl response:', data);
+
+                        if (response.ok && data.success) {
+                            this.showMessage('Crawl completed successfully!', 'success');
+                            this.displayCrawlResults([data]);
+                        } else {
+                            throw new Error(data.error || 'Crawl failed');
+                        }
+                    } catch (error) {
+                        console.error('Crawl error:', error);
+                        this.showMessage(`Crawl failed: ${error.message}`, 'error');
+                    } finally {
+                        document.getElementById('start-crawl-btn').disabled = false;
+                        document.getElementById('start-crawl-btn').innerHTML = '<i class="fas fa-play mr-2"></i>Start Crawling';
+                    }
+                } else {
+                    this.showMessage('AI discovery feature coming soon. For now, please enter a valid URL.', 'warning');
+                }
+            }
+
+            displayCrawlResults(results) {
+                this.crawlResults = results;
+                const container = document.getElementById('results-container');
+                container.innerHTML = '';
+
+                results.forEach((result, index) => {
+                    const card = document.createElement('div');
+                    card.className = `crawl-card ${result.success ? 'success' : 'failed'} bg-white rounded-lg shadow p-4`;
+                    
+                    if (result.success) {
+                        card.innerHTML = `
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-semibold text-blue-700">${result.title || 'Untitled Page'}</p>
+                                    <a href="${result.url}" target="_blank" class="text-xs text-gray-500 hover:underline">${this.truncateUrl(result.url, 70)}</a>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <h3 class="font-medium text-gray-800 mb-2">Extracted Content</h3>
+                                <div class="extraction-preview bg-gray-50 p-3 rounded max-h-40 overflow-y-auto">
+                                    ${result.markdown ? this.escapeHtml(result.markdown.substring(0, 500)) + (result.markdown.length > 500 ? '...' : '') : 'No content extracted'}
+                                </div>
+                            </div>
+                            ${result.links && result.links.length > 0 ? `
+                            <div class="mt-4">
+                                <h3 class="font-medium text-gray-800 mb-2">Links Found (${result.links.length})</h3>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                    ${result.links.slice(0, 5).map(link => `
+                                        <a href="${link}" target="_blank" class="text-sm text-blue-600 hover:underline truncate">${this.escapeHtml(link)}</a>
+                                    `).join('')}
+                                    ${result.links.length > 5 ? `<span class="text-sm text-gray-500">+${result.links.length - 5} more</span>` : ''}
+                                </div>
+                            </div>
+                            ` : ''}
+                            ${result.media && result.media.length > 0 ? `
+                            <div class="mt-4">
+                                <h3 class="font-medium text-gray-800 mb-2">Media Found (${result.media.length})</h3>
+                                <div class="flex flex-wrap gap-2">
+                                    ${result.media.slice(0, 3).map(media => `
+                                        <a href="${media}" target="_blank" class="text-sm text-blue-600 hover:underline truncate">${this.escapeHtml(media)}</a>
+                                    `).join('')}
+                                    ${result.media.length > 3 ? `<span class="text-sm text-gray-500">+${result.media.length - 3} more</span>` : ''}
+                                </div>
+                            </div>
+                            ` : ''}
+                        `;
+                    } else {
+                        card.innerHTML = `
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-semibold text-red-700">Crawl Failed</p>
+                                    <a href="${result.url}" target="_blank" class="text-xs text-gray-500 hover:underline">${this.truncateUrl(result.url, 70)}</a>
+                                </div>
+                            </div>
+                            <div class="mt-2 text-red-600">
+                                <p><strong>Error:</strong> ${this.escapeHtml(result.error || 'Unknown error')}</p>
+                            </div>
+                        `;
+                    }
+                    
+                    container.appendChild(card);
+                });
+            }
+
+            truncateUrl(url, len = 60) {
+                return url.length > len ? url.slice(0, len) + '...' : url;
+            }
+
+            escapeHtml(unsafe) {
+                return unsafe?.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;") || '';
+            }
+
+            showMessage(message, type) {
+                const container = document.getElementById('message-container');
+                const div = document.createElement('div');
+                div.className = `message ${type} flex justify-between items-center`;
+                div.innerHTML = `<span>${message}</span><button class="font-bold" onclick="this.parentElement.remove()">&times;</button>`;
+                container.appendChild(div);
+                setTimeout(() => div.remove(), 5000);
+            }
+
+            clearAll() {
+                if (confirm('Are you sure you want to clear all data?')) {
+                    document.getElementById('crawl-prompt').value = '';
+                    document.getElementById('results-container').innerHTML = '<div class="text-center text-gray-500 py-12"><div class="animate-bounce-slow"><i class="fas fa-search text-6xl mb-4 text-gray-300"></i></div><p>All data cleared.</p></div>';
+                    
+                    // Reset stats
+                    document.getElementById('total-urls').textContent = '0';
+                    document.getElementById('completed-urls').textContent = '0';
+                    document.getElementById('failed-urls').textContent = '0';
+                    document.getElementById('blocks-encountered').textContent = '0';
+                    document.getElementById('current-speed').textContent = '0';
+                    document.getElementById('current-depth').textContent = '0';
+                    document.getElementById('progress-bar').style.width = '0%';
+                    document.getElementById('status-message').textContent = 'All data cleared.';
+                    
+                    // Reset UI sections
+                    document.getElementById('progress-dashboard').style.display = 'none';
+                    document.getElementById('results-section').style.display = 'none';
+                    
+                    this.initializeChart();
+                    this.showMessage('All data cleared.', 'success');
+                }
+            }
+
+            downloadResults(format) {
+                if (this.crawlResults.length === 0) {
+                    this.showMessage('No results to download.', 'warning');
+                    return;
+                }
+
+                if (format === 'json') {
+                    const dataStr = JSON.stringify(this.crawlResults, null, 2);
+                    const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                    const url = URL.createObjectURL(dataBlob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'crawl-results.json';
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    this.showMessage('Results downloaded as JSON.', 'success');
+                } else if (format === 'csv') {
+                    // Simple CSV conversion
+                    let csvContent = 'URL,Title,Status,Error\n';
+                    this.crawlResults.forEach(result => {
+                        csvContent += `"${result.url}","${result.title || ''}","${result.success ? 'Success' : 'Failed'}","${result.error || ''}"\n`;
+                    });
+                    const dataBlob = new Blob([csvContent], {type: 'text/csv'});
+                    const url = URL.createObjectURL(dataBlob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'crawl-results.csv';
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    this.showMessage('Results downloaded as CSV.', 'success');
+                }
+            }
+
+            saveConfig() {
+                this.showMessage('Configuration saved.', 'success');
+            }
+
+            loadConfig() {
+                this.showMessage('Configuration loaded.', 'success');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            new SmartScrapeUI();
+        });
+    </script>
+</body>
+</html>

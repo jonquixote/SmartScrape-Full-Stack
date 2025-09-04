@@ -29,6 +29,7 @@
   "devDependencies": {
     "@hono/vite-build": "^1.2.0",
     "@hono/vite-dev-server": "^0.18.2",
+    "http-server": "^14.1.1",
     "pm2": "^6.0.8",
     "vite": "^6.3.5",
     "wrangler": "^4.34.0"

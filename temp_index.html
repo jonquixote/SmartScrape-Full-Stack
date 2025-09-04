@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartScrape - Simplified Crawler</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <div class="text-center">
+            <h1 class="text-4xl font-bold text-blue-600 mb-4">SmartScrape</h1>
+            <p class="text-xl text-gray-700 mb-8">AI-Powered Web Crawling</p>
+            <div class="bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto">
+                <h2 class="text-2xl font-semibold mb-4">Welcome to SmartScrape</h2>
+                <p class="mb-4">This is a simplified interface for the powerful Crawl4AI Ultimate Pro engine.</p>
+                <div class="flex justify-center space-x-4">
+                    <a href="/api/health" class="btn-primary px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600">API Health</a>
+                    <button id="test-api" class="btn-secondary px-4 py-2 rounded bg-gray-500 text-white hover:bg-gray-600">Test API</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('test-api').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                alert(`API Status: ${data.status}
+Version: ${data.version}
+Timestamp: ${data.timestamp}`);
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        });
+    </script>
+</body>
+</html>

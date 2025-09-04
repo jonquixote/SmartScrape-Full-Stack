@@ -1,23 +1,43 @@
 module.exports = {
   apps: [
     {
-      name: 'webapp',
+      name: 'webapp-frontend',
       script: 'npx',
-      args: 'wrangler pages dev dist --d1=webapp-production --local --ip 0.0.0.0 --port 3000',
-      cwd: '/tmp/SmartScrape-Full-Stack',
+      args: 'http-server . -p 3000 --cors',
+      cwd: '/Users/johnny/Code/SmartScrape-Full-Stack',
       env: {
         NODE_ENV: 'development',
         PORT: 3000,
-        PWD: '/tmp/SmartScrape-Full-Stack'
+        PWD: '/Users/johnny/Code/SmartScrape-Full-Stack'
       },
       watch: false,
       instances: 1,
       exec_mode: 'fork',
       autorestart: true,
       max_memory_restart: '1G',
-      error_file: '/tmp/SmartScrape-Full-Stack/logs/err.log',
-      out_file: '/tmp/SmartScrape-Full-Stack/logs/out.log',
-      log_file: '/tmp/SmartScrape-Full-Stack/logs/combined.log',
+      error_file: '/Users/johnny/Code/SmartScrape-Full-Stack/logs/err-frontend.log',
+      out_file: '/Users/johnny/Code/SmartScrape-Full-Stack/logs/out-frontend.log',
+      log_file: '/Users/johnny/Code/SmartScrape-Full-Stack/logs/combined-frontend.log',
+      time: true
+    },
+    {
+      name: 'webapp-backend',
+      script: './start_service.sh',
+      cwd: '/Users/johnny/Code/SmartScrape-Full-Stack',
+      env: {
+        NODE_ENV: 'development',
+        PYTHONPATH: '/Users/johnny/Code/SmartScrape-Full-Stack',
+        PWD: '/Users/johnny/Code/SmartScrape-Full-Stack'
+      },
+      interpreter: 'bash',
+      watch: false,
+      instances: 1,
+      exec_mode: 'fork',
+      autorestart: true,
+      max_memory_restart: '1G',
+      error_file: '/Users/johnny/Code/SmartScrape-Full-Stack/logs/err-backend.log',
+      out_file: '/Users/johnny/Code/SmartScrape-Full-Stack/logs/out-backend.log',
+      log_file: '/Users/johnny/Code/SmartScrape-Full-Stack/logs/combined-backend.log',
       time: true
     }
   ]

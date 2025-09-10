@@ -120,183 +120,306 @@ class AdvancedCrawlService:
             await crawler_instance.__aenter__()
         return crawler_instance
     
-    async def crawl_url(self, request: CrawlRequest) -> CrawlResponse:
-        """Crawl a single URL with advanced options"""
-        start_time = time.time()
-        
+    def _safe_parse_extracted_content(self, content):
+        """Safely parse extracted content and handle common errors"""
         try:
-            crawler = await self.get_crawler()
-            
-            # Prepare crawl options
-            crawl_options = {
-                "url": str(request.url),
-                "user_agent": request.user_agent,
-                "proxy": request.proxy,
-                "wait_for": request.wait_for_selector,
-                "screenshot": request.screenshot,
-                "bypass_cache": True
-            }
-            
-            # Add extraction strategy
-            print(f"DEBUG: Checking extraction strategy - {request.extraction_strategy}")
-            if request.extraction_schema:
-                print(f"DEBUG: Extraction schema present: {list(request.extraction_schema.keys())}")
-            
-            if request.extraction_strategy == "llm_based":
-                print("DEBUG: LLM extraction strategy matched")
-                # Handle LLM-based extraction with proper configuration
-                # Even if no schema is provided, we should still set up LLM extraction
-                extraction_schema = request.extraction_schema or {}
-                api_key = extraction_schema.get("api_key")
-                instruction = extraction_schema.get("instruction", "Extract key information from the page")
-                schema = extraction_schema.get("schema", {})
-                provider = extraction_schema.get("provider", "openai")
-                model = extraction_schema.get("model", "gpt-3.5-turbo")
-                delay = extraction_schema.get("delay", 1000)
-                
-                # Debug logging
-                print(f"DEBUG: Setting up LLM extraction")
-                print(f"  Provider: {provider}")
-                print(f"  Model: {model}")
-                print(f"  API Key present: {bool(api_key)}")
-                print(f"  Instruction: {instruction}")
-                print(f"  Schema: {schema}")
-                print(f"  Delay: {delay}ms")
-                
-                if api_key:
-                    # Format provider correctly for crawl4ai
-                    # Use a current Groq model instead of deprecated ones
-                    provider_format = f"groq/llama-3.1-8b-instant" if provider == "groq" else f"{provider}/{model}"
-                    if "/" not in provider:
-                        provider_format = f"{provider}/{model}"
-                    print(f"  Provider format: {provider_format}")
-                    
-                    # Use LLMConfig to avoid ForwardRef errors
-                    llm_config = LLMConfig(
-                        provider=provider_format,
-                        api_token=api_key
-                    )
-                    
-                    # Handle schema properly - if it's a dict, we might need to convert it
-                    extraction_schema = schema if schema else {}
-                    
-                    # For schema-based extraction, we need to specify the extraction_type
-                    extraction_type = "schema" if schema else "block"
-                    
-                    extraction_strategy = LLMExtractionStrategy(
-                        llm_config=llm_config,
-                        instruction=instruction,
-                        schema=extraction_schema,
-                        extraction_type=extraction_type
-                    )
-                    
-                    # Create CrawlerRunConfig with the extraction strategy
-                    run_config = CrawlerRunConfig(
-                        word_count_threshold=1,  # Process all content
-                        extraction_strategy=extraction_strategy,
-                        cache_mode=CacheMode.BYPASS  # Don't use cache for fresh results
-                    )
-                    
-                    # Add the run_config to crawl options instead of extraction_strategy directly
-                    crawl_options["config"] = run_config
-                    print(f"  LLM extraction strategy set up successfully with CrawlerRunConfig")
-                else:
-                    print(f"  No API key provided, skipping LLM extraction")
-            
-            elif request.extraction_strategy == "cosine":
-                print("DEBUG: Cosine extraction strategy matched")
-                crawl_options["extraction_strategy"] = CosineStrategy(
-                    semantic_filter=request.extraction_schema.get("semantic_filter", "main content")
-                )
-            else:
-                print(f"DEBUG: Unknown extraction strategy: {request.extraction_strategy}")
-            
-            # Add chunking strategy
-            if request.chunking_strategy == "regex":
-                crawl_options["chunking_strategy"] = RegexChunking(
-                    patterns=[r'\n\n', r'\. '],
-                    max_length=request.max_length,
-                    overlap=request.overlap
-                )
-            # For semantic chunking, we'll use a simpler approach or skip it for now
-            elif request.chunking_strategy == "semantic":
-                # Use regex chunking as a fallback for semantic
-                crawl_options["chunking_strategy"] = RegexChunking(
-                    patterns=[r'\n\n', r'\. '],
-                    max_length=request.max_length,
-                    overlap=request.overlap
-                )
-            
-            # Perform crawl
-            result = await crawler.arun(**crawl_options)
-            
-            if not result.success:
-                return CrawlResponse(
-                    success=False,
-                    url=str(request.url),
-                    error=f"Crawl failed: {result.error_message}"
-                )
-            
-            # Process pagination if enabled
-            pagination_info = None
-            if request.enable_pagination:
-                pagination_info = await self.detect_pagination(result.html, str(request.url))
-            
-            # Extract performance metrics
-            end_time = time.time()
-            performance_metrics = {
-                "response_time": round((end_time - start_time) * 1000),
-                "content_size": len(result.html) if result.html else 0,
-                "markdown_size": len(result.markdown) if result.markdown else 0,
-                "links_count": len(result.links) if result.links else 0,
-                "media_count": len(result.media) if result.media else 0
-            }
-            
-            # Process extracted content if available
-            extracted_content = None
-            if hasattr(result, 'extracted_content') and result.extracted_content:
+            # If it's already a dict, check for problematic attributes
+            if isinstance(content, dict):
+                # Handle the specific "'list' object has no attribute 'usage'" error
+                # This happens when the content contains a 'usage' key that's a list
+                # but code tries to access it as an object with attributes
+                if 'usage' in content:
+                    if isinstance(content['usage'], list):
+                        # Convert list to a more usable format or remove it
+                        content = content.copy()  # Don't modify original
+                        content['usage'] = {
+                            'details': content['usage'],
+                            'type': 'list'
+                        }
+                    elif content['usage'] is None:
+                        # Remove None usage values
+                        content = content.copy()
+                        del content['usage']
+                return content
+            elif isinstance(content, str):
+                # Try to parse as JSON
+                import json
                 try:
-                    # The extracted_content might be a JSON string, so we need to parse it
-                    import json
-                    extracted_content = json.loads(result.extracted_content)
+                    parsed = json.loads(content)
+                    return self._safe_parse_extracted_content(parsed)  # Recursively handle parsed content
                 except json.JSONDecodeError:
-                    # If it's not valid JSON, use it as-is
-                    extracted_content = result.extracted_content
-            
-            # Process chunks if available
-            chunks = None
-            if hasattr(result, 'chunks') and result.chunks:
-                chunks = [
-                    {
-                        "content": chunk.text,
-                        "metadata": chunk.metadata,
-                        "index": i
-                    }
-                    for i, chunk in enumerate(result.chunks)
-                ]
-            
-            return CrawlResponse(
-                success=True,
-                url=str(request.url),
-                title=result.metadata.get("title") if result.metadata else None,
-                markdown=result.markdown,
-                html=result.html,
-                extracted_content=extracted_content,  # Use parsed content
-                links=result.links,
-                media=result.media,
-                metadata=result.metadata,
-                chunks=chunks,
-                pagination_info=pagination_info,
-                performance_metrics=performance_metrics,
-                screenshot_url=result.screenshot if request.screenshot else None
-            )
-            
+                    # Return as-is if not valid JSON
+                    return content
+            elif isinstance(content, list):
+                # Handle case where content is unexpectedly a list
+                return {
+                    'data': content,
+                    'type': 'list',
+                    'count': len(content)
+                }
+            else:
+                # For other types, convert to string
+                return str(content)
         except Exception as e:
-            return CrawlResponse(
-                success=False,
-                url=str(request.url),
-                error=f"Crawl error: {str(e)}"
-            )
+            print(f"DEBUG: Error in _safe_parse_extracted_content: {str(e)}")
+            # Return raw content if parsing fails
+            return content
+    
+    async def crawl_url(self, request: CrawlRequest) -> CrawlResponse:
+        """Crawl a single URL with advanced options and retry logic"""
+        start_time = time.time()
+        max_retries = 3
+        retry_count = 0
+        
+        while retry_count <= max_retries:
+            try:
+                crawler = await self.get_crawler()
+                
+                # Prepare crawl options
+                crawl_options = {
+                    "url": str(request.url),
+                    "user_agent": request.user_agent,
+                    "proxy": request.proxy,
+                    "wait_for": request.wait_for_selector,
+                    "screenshot": request.screenshot,
+                    "bypass_cache": True
+                }
+                
+                # Add extraction strategy
+                print(f"DEBUG: Checking extraction strategy - {request.extraction_strategy}")
+                if request.extraction_schema:
+                    print(f"DEBUG: Extraction schema present: {list(request.extraction_schema.keys())}")
+                
+                if request.extraction_strategy == "llm_based":
+                    print("DEBUG: LLM extraction strategy matched")
+                    # Handle LLM-based extraction with proper configuration
+                    # Even if no schema is provided, we should still set up LLM extraction
+                    extraction_schema = request.extraction_schema or {}
+                    api_key = extraction_schema.get("api_key")
+                    instruction = extraction_schema.get("instruction", "Extract key information from the page")
+                    schema = extraction_schema.get("schema", {})
+                    provider = extraction_schema.get("provider", "openai")
+                    model = extraction_schema.get("model", "gpt-3.5-turbo")
+                    delay = extraction_schema.get("delay", 1000)
+                    
+                    # Debug logging
+                    print(f"DEBUG: Setting up LLM extraction")
+                    print(f"  Provider: {provider}")
+                    print(f"  Model: {model}")
+                    print(f"  API Key present: {bool(api_key)}")
+                    print(f"  Instruction: {instruction}")
+                    print(f"  Schema: {schema}")
+                    print(f"  Delay: {delay}ms")
+                    
+                    if api_key:
+                        # Format provider correctly for crawl4ai
+                        # Use a current Groq model instead of deprecated ones
+                        provider_format = f"groq/llama-3.1-8b-instant" if provider == "groq" else f"{provider}/{model}"
+                        if "/" not in provider:
+                            provider_format = f"{provider}/{model}"
+                        print(f"  Provider format: {provider_format}")
+                        
+                        # Use LLMConfig to avoid ForwardRef errors
+                        llm_config = LLMConfig(
+                            provider=provider_format,
+                            api_token=api_key
+                        )
+                        
+                        # Handle schema properly - if it's a dict, we might need to convert it
+                        extraction_schema = schema if schema else {}
+                        
+                        # For schema-based extraction, we need to specify the extraction_type
+                        extraction_type = "schema" if schema else "block"
+                        
+                        extraction_strategy = LLMExtractionStrategy(
+                            llm_config=llm_config,
+                            instruction=instruction,
+                            schema=extraction_schema,
+                            extraction_type=extraction_type
+                        )
+                        
+                        # Create CrawlerRunConfig with the extraction strategy
+                        run_config = CrawlerRunConfig(
+                            word_count_threshold=1,  # Process all content
+                            extraction_strategy=extraction_strategy,
+                            cache_mode=CacheMode.BYPASS  # Don't use cache for fresh results
+                        )
+                        
+                        # Add the run_config to crawl options instead of extraction_strategy directly
+                        crawl_options["config"] = run_config
+                        print(f"  LLM extraction strategy set up successfully with CrawlerRunConfig")
+                    else:
+                        print(f"  No API key provided, skipping LLM extraction")
+                
+                elif request.extraction_strategy == "cosine":
+                    print("DEBUG: Cosine extraction strategy matched")
+                    crawl_options["extraction_strategy"] = CosineStrategy(
+                        semantic_filter=request.extraction_schema.get("semantic_filter", "main content")
+                    )
+                else:
+                    print(f"DEBUG: Unknown extraction strategy: {request.extraction_strategy}")
+                
+                # Add chunking strategy
+                if request.chunking_strategy == "regex":
+                    crawl_options["chunking_strategy"] = RegexChunking(
+                        patterns=[r'\n\n', r'\. '],
+                        max_length=request.max_length,
+                        overlap=request.overlap
+                    )
+                # For semantic chunking, we'll use a simpler approach or skip it for now
+                elif request.chunking_strategy == "semantic":
+                    # Use regex chunking as a fallback for semantic
+                    crawl_options["chunking_strategy"] = RegexChunking(
+                        patterns=[r'\n\n', r'\. '],
+                        max_length=request.max_length,
+                        overlap=request.overlap
+                    )
+                
+                # Perform crawl
+                result = await crawler.arun(**crawl_options)
+                
+                # Check if we need to retry based on the result
+                if not result.success:
+                    error_msg = result.error_message.lower() if result.error_message else ""
+                    
+                    # Check for rate limiting or retry messages
+                    if any(keyword in error_msg for keyword in ["rate limit", "retry after", "too many requests", "429"]):
+                        # Extract delay time from error message if possible
+                        delay_seconds = 1  # Default delay
+                        
+                        # Look for patterns like "retry after X seconds" or "retry in Xs"
+                        import re
+                        retry_match = re.search(r'retry\s+(?:after|in)\s+(\d+)\s*(?:seconds?|s)', error_msg)
+                        if retry_match:
+                            delay_seconds = int(retry_match.group(1))
+                        
+                        print(f"DEBUG: Rate limit detected. Retrying after {delay_seconds} seconds...")
+                        
+                        # Wait before retrying
+                        await asyncio.sleep(delay_seconds)
+                        
+                        retry_count += 1
+                        if retry_count <= max_retries:
+                            print(f"DEBUG: Retry attempt {retry_count}/{max_retries}")
+                            continue  # Continue the retry loop
+                        else:
+                            return CrawlResponse(
+                                success=False,
+                                url=str(request.url),
+                                error=f"Rate limited after {max_retries} retries: {result.error_message}"
+                            )
+                    else:
+                        # For other errors, don't retry
+                        return CrawlResponse(
+                            success=False,
+                            url=str(request.url),
+                            error=f"Crawl failed: {result.error_message}"
+                        )
+                
+                # Process pagination if enabled
+                pagination_info = None
+                if request.enable_pagination:
+                    pagination_info = await self.detect_pagination(result.html, str(request.url))
+                
+                # Extract performance metrics
+                end_time = time.time()
+                performance_metrics = {
+                    "response_time": round((end_time - start_time) * 1000),
+                    "content_size": len(result.html) if result.html else 0,
+                    "markdown_size": len(result.markdown) if result.markdown else 0,
+                    "links_count": len(result.links) if result.links else 0,
+                    "media_count": len(result.media) if result.media else 0
+                }
+                
+                # Process extracted content if available
+                extracted_content = None
+                if hasattr(result, 'extracted_content') and result.extracted_content:
+                    # Use our safe parsing method to handle potential errors
+                    extracted_content = self._safe_parse_extracted_content(result.extracted_content)
+                
+                # Process chunks if available
+                chunks = None
+                if hasattr(result, 'chunks') and result.chunks:
+                    try:
+                        # Handle potential list vs object issues with chunks
+                        if isinstance(result.chunks, list):
+                            chunks = [
+                                {
+                                    "content": getattr(chunk, 'text', str(chunk)),
+                                    "metadata": getattr(chunk, 'metadata', {}),
+                                    "index": i
+                                }
+                                for i, chunk in enumerate(result.chunks)
+                            ]
+                        else:
+                            # Handle case where chunks might not be a list
+                            chunks = [{"content": str(result.chunks), "metadata": {}, "index": 0}]
+                    except Exception as chunk_error:
+                        print(f"DEBUG: Error processing chunks: {str(chunk_error)}")
+                        chunks = None
+                
+                return CrawlResponse(
+                    success=True,
+                    url=str(request.url),
+                    title=result.metadata.get("title") if result.metadata else None,
+                    markdown=result.markdown,
+                    html=result.html,
+                    extracted_content=extracted_content,  # Use parsed content
+                    links=result.links,
+                    media=result.media,
+                    metadata=result.metadata,
+                    chunks=chunks,
+                    pagination_info=pagination_info,
+                    performance_metrics=performance_metrics,
+                    screenshot_url=result.screenshot if request.screenshot else None
+                )
+                
+            except Exception as e:
+                print(f"DEBUG: Exception in crawl_url: {str(e)}")
+                import traceback
+                traceback.print_exc()
+                
+                # Check if exception message contains retry information
+                error_str = str(e).lower()
+                if any(keyword in error_str for keyword in ["rate limit", "retry after", "too many requests", "429"]):
+                    # Extract delay time from error message if possible
+                    delay_seconds = 1  # Default delay
+                    
+                    # Look for patterns like "retry after X seconds" or "retry in Xs"
+                    import re
+                    retry_match = re.search(r'retry\s+(?:after|in)\s+(\d+)\s*(?:seconds?|s)', error_str)
+                    if retry_match:
+                        delay_seconds = int(retry_match.group(1))
+                    
+                    print(f"DEBUG: Rate limit exception detected. Retrying after {delay_seconds} seconds...")
+                    
+                    # Wait before retrying
+                    await asyncio.sleep(delay_seconds)
+                    
+                    retry_count += 1
+                    if retry_count <= max_retries:
+                        print(f"DEBUG: Retry attempt {retry_count}/{max_retries} due to exception")
+                        continue  # Continue the retry loop
+                    else:
+                        return CrawlResponse(
+                            success=False,
+                            url=str(request.url),
+                            error=f"Rate limited after {max_retries} retries due to exception: {str(e)}"
+                        )
+                else:
+                    # For other exceptions, don't retry
+                    return CrawlResponse(
+                        success=False,
+                        url=str(request.url),
+                        error=f"Crawl error: {str(e)}"
+                    )
+        
+        # This shouldn't be reached, but just in case
+        return CrawlResponse(
+            success=False,
+            url=str(request.url),
+            error="Maximum retry attempts exceeded"
+        )
     
     async def discover_sitemap(self, base_url: str) -> Dict:
         """Discover URLs from sitemap.xml and return structured data"""

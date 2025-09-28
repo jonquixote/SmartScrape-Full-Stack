@@ -4,7 +4,7 @@ export const renderer = jsxRenderer(({ children }) => {
   return (
     <html>
       <head>
-        <link href="/static/style.css" rel="stylesheet" />
+        <title>Crawl4AI Comprehensive Demo</title>
       </head>
       <body>{children}</body>
     </html>

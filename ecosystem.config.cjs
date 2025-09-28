@@ -3,7 +3,7 @@ module.exports = {
     {
       name: 'webapp-frontend',
       script: 'npx',
-      args: 'http-server . -p 3000 --cors',
+      args: 'http-server ./dist -p 3000 --cors',
       cwd: '/Users/johnny/Code/SmartScrape-Full-Stack',
       env: {
         NODE_ENV: 'development',
